@@ -1,4 +1,3 @@
-
 // ========== config.js ==========
 // ===== API 設定 =====
 const CONFIG = {
@@ -26,31 +25,29 @@ const CONFIG = {
 const api = {
     // 通用請求函數
     async request(action, method = 'GET', data = null) {
-        const password = localStorage.getItem(CONFIG.PASSWORD_KEY);
+        const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
         
         if (!password) {
             throw new Error('未登入');
         }
         
-        const url = `${CONFIG.API_URL}?action=${action}&password=${password}`;
+        let url = `${CONFIG.API_URL}?action=${action}&password=${password}`;
         
-        const options = {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        };
-        
+        // 如果有資料,轉成 JSON 字串並放到 URL 參數
         if (data && method === 'POST') {
-            options.body = JSON.stringify(data);
+            url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
         }
         
         try {
-            const response = await fetch(url, options);
+            // ✅ 關鍵: 只用 GET,不加 headers (避免觸發 CORS preflight)
+            const response = await fetch(url, {
+                method: 'GET'
+            });
+            
             const result = await response.json();
             
             if (result.error === 'Unauthorized') {
-                localStorage.removeItem(CONFIG.PASSWORD_KEY);
+                sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
                 app.logout();
                 throw new Error('認證失敗,請重新登入');
             }
@@ -127,7 +124,7 @@ const app = {
     // 初始化
     init() {
         // 檢查登入狀態
-        const password = localStorage.getItem(CONFIG.PASSWORD_KEY);
+        const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
         if (password) {
             this.showApp();
             this.navigateTo('dashboard');
@@ -153,7 +150,7 @@ const app = {
         const errorEl = document.getElementById('loginError');
         
         // 暫存密碼
-        localStorage.setItem(CONFIG.PASSWORD_KEY, password);
+        sessionStorage.setItem(CONFIG.PASSWORD_KEY, password);
         
         try {
             // 測試 API 連線
@@ -168,7 +165,7 @@ const app = {
                 throw new Error('登入失敗');
             }
         } catch (error) {
-            localStorage.removeItem(CONFIG.PASSWORD_KEY);
+            sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
             errorEl.textContent = '密碼錯誤或無法連接伺服器';
             this.showToast('登入失敗', 'error');
         }
@@ -177,7 +174,7 @@ const app = {
     // 登出
     logout() {
         if (confirm('確定要登出嗎?')) {
-            localStorage.removeItem(CONFIG.PASSWORD_KEY);
+            sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
             this.showLogin();
             this.showToast('已登出', 'info');
         }
@@ -1121,4 +1118,3 @@ const autoreply = {
         }
     }
 };
-
