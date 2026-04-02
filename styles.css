@@ -708,35 +708,83 @@ button {
 }
 
 /* ===== 其他元素 ===== */
-.action-grid {
+/* ===== 快捷操作 ===== */
+/* ===== 快捷操作 ===== */
+.quick-actions {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 24px;
 }
 
-.action-card {
+.action-btn {
     background: var(--bg-card);
     border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 16px 12px;
+    border-radius: var(--radius);
+    padding: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
     cursor: pointer;
     transition: all 0.2s;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
 }
 
-.action-card:hover {
+.action-btn:hover {
     background: var(--bg-hover);
     border-color: var(--border-default);
     transform: translateY(-2px);
 }
 
-.action-icon {
+.action-btn .action-icon {
     width: 40px;
     height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-light);
+    border-radius: var(--radius-sm);
+}
+
+.action-btn .action-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--primary);
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.action-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 80px;
+}
+
+.action-card:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-default);
+    transform: translateY(-1px);
+}
+
+.action-icon {
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -746,16 +794,20 @@ button {
 }
 
 .action-icon svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     stroke: var(--primary);
 }
 
 .action-label {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     text-align: center;
-    line-height: 1.2;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
 }
 
 /* ===== 響應式 ===== */
