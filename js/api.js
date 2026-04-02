@@ -1,29 +1,26 @@
-// ===== API 通訊模組 =====
+// ===== API 通訊模組 (簡化版 - 避免 CORS preflight) =====
 const api = {
     // 通用請求函數
     async request(action, method = 'GET', data = null) {
-        // ✅ 從 sessionStorage 讀取密碼 (不是 localStorage)
         const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
         
         if (!password) {
             throw new Error('未登入');
         }
         
-        const url = `${CONFIG.API_URL}?action=${action}&password=${password}`;
+        let url = `${CONFIG.API_URL}?action=${action}&password=${password}`;
         
-        const options = {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        };
-        
+        // 如果有資料,轉成 JSON 字串並放到 URL 參數
         if (data && method === 'POST') {
-            options.body = JSON.stringify(data);
+            url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
         }
         
         try {
-            const response = await fetch(url, options);
+            // ✅ 關鍵: 只用 GET,不加 headers (避免觸發 CORS preflight)
+            const response = await fetch(url, {
+                method: 'GET'
+            });
+            
             const result = await response.json();
             
             if (result.error === 'Unauthorized') {
@@ -44,7 +41,7 @@ const api = {
         return await this.request(action, 'GET');
     },
     
-    // POST 請求
+    // POST 請求 (實際上也用 GET)
     async post(action, data) {
         return await this.request(action, 'POST', data);
     },
