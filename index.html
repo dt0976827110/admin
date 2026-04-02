@@ -9,7 +9,1024 @@
     <title>LINE 會員管理</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="images/icon-192.png">
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+/* ===== 基礎設定 ===== */
+:root {
+    --bg-primary: #0f0f1e;
+    --bg-secondary: #1a1a2e;
+    --bg-card: rgba(255, 255, 255, 0.05);
+    --bg-card-hover: rgba(255, 255, 255, 0.08);
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --text-tertiary: #707080;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ===== 頁面結構 ===== */
+.page {
+    display: none;
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+.page.active {
+    display: block;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+}
+
+.page-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.page-content {
+    padding: 20px;
+}
+
+/* ===== 登入頁面 ===== */
+#loginPage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--bg-primary);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.login-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: var(--shadow);
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo-icon {
+    font-size: 64px;
+    margin-bottom: 10px;
+}
+
+.logo h1 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.error-message {
+    color: var(--danger);
+    font-size: 14px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* ===== 按鈕 ===== */
+.btn-primary {
+    width: 100%;
+    padding: 14px 24px;
+    background: var(--accent-gradient);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* ===== 登入按鈕 Loading 狀態 ===== */
+.btn-primary .btn-text {
+    display: inline-block;
+}
+
+.btn-primary .btn-loading {
+    display: none;
+}
+
+.btn-primary.loading .btn-text {
+    display: none;
+}
+
+.btn-primary.loading .btn-loading {
+    display: inline-block;
+}
+
+.btn-primary.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-success {
+    padding: 14px 24px;
+    background: var(--success);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+}
+
+.btn-danger {
+    padding: 12px 24px;
+    background: var(--danger);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* ===== 統計卡片 ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    font-size: 36px;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* ===== 區塊 ===== */
+.section {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+/* ===== 快捷操作 ===== */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: var(--text-primary);
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.action-icon {
+    font-size: 32px;
+}
+
+.action-btn span:last-child {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* ===== 活動列表 ===== */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.activity-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.activity-icon {
+    font-size: 24px;
+}
+
+.activity-info {
+    flex: 1;
+}
+
+.activity-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.activity-time {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.activity-amount {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--success);
+}
+
+/* ===== 搜尋列 ===== */
+.search-bar {
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* ===== 會員列表 ===== */
+.members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.member-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.member-card:hover {
+    background: var(--bg-card-hover);
+    transform: translateX(4px);
+}
+
+.member-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.member-id {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.member-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.member-status.active {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.member-status.inactive {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+}
+
+.member-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.member-name {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.member-balance {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--success);
+}
+
+/* ===== 表單 ===== */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+/* ===== 折抵頁面 ===== */
+#deductionInput {
+    width: 100%;
+    min-height: 200px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.hint {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+}
+
+.preview-table {
+    overflow-x: auto;
+}
+
+.preview-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.preview-table th,
+.preview-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.preview-table th {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.preview-table td {
+    font-size: 14px;
+}
+
+.preview-table .success {
+    color: var(--success);
+}
+
+.preview-table .warning {
+    color: var(--warning);
+}
+
+.preview-table .error {
+    color: var(--danger);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.action-buttons button {
+    flex: 1;
+}
+
+/* ===== 紅包頁面 ===== */
+.claim-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.claim-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.claim-info {
+    flex: 1;
+}
+
+.claim-name {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.claim-time {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.claim-amount {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--success);
+}
+
+/* ===== 自動回應頁面 ===== */
+.reply-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reply-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.reply-card:hover {
+    background: var(--bg-card-hover);
+}
+
+.reply-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.reply-keyword {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.reply-toggle {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.reply-toggle.active {
+    background: var(--success);
+}
+
+.reply-toggle::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: all 0.3s;
+}
+
+.reply-toggle.active::after {
+    left: 27px;
+}
+
+.reply-content {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 99;
+}
+
+.modal-overlay.active {
+    display: block;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.modal.active {
+    display: block;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.modal-content {
+    padding: 20px;
+    max-height: calc(90vh - 140px);
+    overflow-y: auto;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.modal-footer button {
+    flex: 1;
+}
+
+/* 會員資訊 */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row .label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.info-row .value {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.copy-text {
+    cursor: pointer;
+    color: #667eea;
+}
+
+.copy-text:hover {
+    text-decoration: underline;
+}
+
+/* 餘額調整 */
+.balance-adjust {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.balance-adjust input {
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.adjust-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.adjust-buttons button {
+    flex: 1;
+    min-width: calc(20% - 8px);
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.adjust-buttons button:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.custom-adjust {
+    display: flex;
+    gap: 8px;
+}
+
+.custom-adjust input {
+    flex: 1;
+}
+
+.custom-adjust button {
+    padding: 12px 20px;
+    background: var(--accent-gradient);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ===== 底部導航 ===== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding: 8px 0;
+    z-index: 50;
+    backdrop-filter: blur(10px);
+}
+
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-item.active {
+    color: #667eea;
+}
+
+.nav-icon {
+    font-size: 24px;
+}
+
+.nav-label {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* ===== Toast 通知 ===== */
+.toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px 24px;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.3s;
+    max-width: 90%;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast.success {
+    border-left: 4px solid var(--success);
+}
+
+.toast.error {
+    border-left: 4px solid var(--danger);
+}
+
+.toast.warning {
+    border-left: 4px solid var(--warning);
+}
+
+.toast.info {
+    border-left: 4px solid var(--info);
+}
+
+/* ===== Loading ===== */
+.loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-tertiary);
+    font-size: 14px;
+}
+
+.loading::after {
+    content: '...';
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+}
+
+/* ===== 響應式 ===== */
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== 隱藏滾動條但保持功能 ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+
+/* ===== SVG 線條圖示樣式 ===== */
+.logo-icon svg {
+    color: #667eea;
+}
+
+.stat-icon svg,
+.action-icon svg,
+.activity-icon svg,
+.nav-icon svg {
+    color: var(--text-primary);
+}
+
+.stat-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.action-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.activity-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.nav-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+</style>
 </head>
 <body>
     <!-- 登入頁面 -->
@@ -17,20 +1034,14 @@
         <div class="login-container">
             <div class="login-card">
                 <div class="logo">
-                    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:64px;height:64px">
-  <circle cx="12" cy="12" r="10"/>
-  <path d="M12 6v6l4 2"/>
-</svg></div>
+                    <div class="logo-icon">🎯</div>
                     <h1>LINE 會員管理</h1>
                 </div>
                 <form id="loginForm">
                     <div class="input-group">
                         <input type="password" id="passwordInput" placeholder="請輸入管理密碼" required>
                     </div>
-                    <button type="submit" class="btn-primary" id="loginBtn">
-                        <span class="btn-text">登入</span>
-                        <span class="btn-loading" style="display: none;">登入中...</span>
-                    </button>
+                    <button type="submit" class="btn-primary">登入</button>
                 </form>
                 <div id="loginError" class="error-message"></div>
             </div>
@@ -83,35 +1094,19 @@
                     <h3>⚡ 快捷操作</h3>
                     <div class="quick-actions">
                         <button class="action-btn" onclick="app.navigateTo('members')">
-                            <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-  <circle cx="9" cy="7" r="4"/>
-  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-</svg></span>
+                            <span class="action-icon">👥</span>
                             <span>會員管理</span>
                         </button>
                         <button class="action-btn" onclick="app.navigateTo('deduction')">
-                            <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <line x1="12" y1="1" x2="12" y2="23"/>
-  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-</svg></span>
+                            <span class="action-icon">💰</span>
                             <span>今日折抵</span>
                         </button>
                         <button class="action-btn" onclick="app.navigateTo('redpacket')">
-                            <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <polyline points="20 12 20 22 4 22 4 12"/>
-  <rect x="2" y="7" width="20" height="5"/>
-  <line x1="12" y1="22" x2="12" y2="7"/>
-  <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-  <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-</svg></span>
+                            <span class="action-icon">🧧</span>
                             <span>紅包活動</span>
                         </button>
                         <button class="action-btn" onclick="app.navigateTo('autoreply')">
-                            <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-</svg></span>
+                            <span class="action-icon">💬</span>
                             <span>自動回應</span>
                         </button>
                     </div>
@@ -225,7 +1220,7 @@ R8011, 40"></textarea>
                                 <input type="datetime-local" id="eventEnd" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn-primary">儲存設定</button>
+                        <button type="submit" class="btn-primary">💾 儲存設定</button>
                     </form>
                 </div>
 
@@ -270,39 +1265,23 @@ R8011, 40"></textarea>
         <!-- 底部導航 -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-page="dashboard" onclick="app.navigateTo('dashboard')">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <polyline points="20 12 20 22 4 22 4 12"/>
-  <rect x="2" y="7" width="20" height="5"/>
-  <line x1="12" y1="22" x2="12" y2="7"/>
-  <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-  <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-</svg></span>
+                <span class="nav-icon">📊</span>
                 <span class="nav-label">儀表板</span>
             </button>
             <button class="nav-item" data-page="members" onclick="app.navigateTo('members')">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-  <circle cx="9" cy="7" r="4"/>
-  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-</svg></span>
+                <span class="nav-icon">👥</span>
                 <span class="nav-label">會員</span>
             </button>
             <button class="nav-item" data-page="deduction" onclick="app.navigateTo('deduction')">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <line x1="12" y1="1" x2="12" y2="23"/>
-  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-</svg></span>
+                <span class="nav-icon">💰</span>
                 <span class="nav-label">折抵</span>
             </button>
             <button class="nav-item" data-page="redpacket" onclick="app.navigateTo('redpacket')">
-                <span class="nav-icon">■</span>
+                <span class="nav-icon">🧧</span>
                 <span class="nav-label">紅包</span>
             </button>
             <button class="nav-item" data-page="autoreply" onclick="app.navigateTo('autoreply')">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-</svg></span>
+                <span class="nav-icon">💬</span>
                 <span class="nav-label">回應</span>
             </button>
         </nav>
@@ -321,16 +1300,18 @@ R8011, 40"></textarea>
             <button class="btn-close" onclick="members.closeModal()">✕</button>
         </div>
         <div class="modal-content">
-            <div class="member-info-compact">
-                <div class="info-grid">
-                    <span class="info-label">會員 ID</span>
-                    <span id="modalMemberId" class="info-value"></span>
-                    <span class="info-label">姓名</span>
-                    <span id="modalMemberName" class="info-value"></span>
+            <div class="member-info">
+                <div class="info-row">
+                    <span class="label">會員 ID</span>
+                    <span id="modalMemberId" class="value"></span>
                 </div>
-                <div class="info-grid single">
-                    <span class="info-label">LINE UID</span>
-                    <span id="modalMemberUid" class="info-value copy-text"></span>
+                <div class="info-row">
+                    <span class="label">姓名</span>
+                    <span id="modalMemberName" class="value"></span>
+                </div>
+                <div class="info-row">
+                    <span class="label">LINE UID</span>
+                    <span id="modalMemberUid" class="value copy-text"></span>
                 </div>
             </div>
 
@@ -345,10 +1326,10 @@ R8011, 40"></textarea>
                         <button onclick="members.adjustBalance(500)">+500</button>
                         <button onclick="members.adjustBalance(1000)">+1000</button>
                     </div>
-                    <div class="custom-adjust">
-                        <input type="number" id="customAdjust" placeholder="自訂金額 (正負皆可)">
-                        <button onclick="members.applyCustomAdjust()">套用</button>
-                    </div>
+                </div>
+                <div class="custom-adjust">
+                    <input type="number" id="customAdjust" placeholder="自訂金額 (正負皆可)">
+                    <button onclick="members.applyCustomAdjust()">套用</button>
                 </div>
             </div>
 
@@ -362,12 +1343,12 @@ R8011, 40"></textarea>
 
             <div class="form-group">
                 <label>備註</label>
-                <input type="text" id="modalNote" placeholder="輸入備註...">
+                <textarea id="modalNote" rows="3"></textarea>
             </div>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary" onclick="members.closeModal()">取消</button>
-            <button class="btn-success" onclick="members.saveMember()">儲存</button>
+            <button class="btn-primary" onclick="members.saveMember()">💾 儲存</button>
         </div>
     </div>
 
@@ -407,17 +1388,1216 @@ R8011, 40"></textarea>
         <div class="modal-footer">
             <button class="btn-danger" onclick="autoreply.deleteReply()" id="deleteReplyBtn" style="display: none;">🗑️ 刪除</button>
             <button class="btn-secondary" onclick="autoreply.closeModal()">取消</button>
-            <button class="btn-primary" onclick="autoreply.saveReply()">儲存</button>
+            <button class="btn-primary" onclick="autoreply.saveReply()">💾 儲存</button>
         </div>
     </div>
 
-    <script src="js/config.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/members.js"></script>
-    <script src="js/deduction.js"></script>
-    <script src="js/redpacket.js"></script>
-    <script src="js/autoreply.js"></script>
+    
+    
+    
+    
+    
+    
+    
+    
+<script>
+
+// ===== config.js =====
+// ===== API 設定 =====
+const CONFIG = {
+    // ⚠️ 請填入你的 GAS Web App URL
+    API_URL: 'YOUR_GAS_WEB_APP_URL_HERE',
+    
+    // ⚠️ 請填入你設定的管理密碼
+    PASSWORD: 'YOUR_PASSWORD_HERE',
+    
+    // Sheet ID (已從你的程式碼中取得)
+    SHEET_ID: '1K_a9KEizA7zBL9F6Y-DkJCa5QfrRuoTKZdUzLvfYnoo',
+    
+    // 本地存儲 key
+    STORAGE_KEY: 'line_member_pwa',
+    PASSWORD_KEY: 'line_member_pwd'
+};
+
+// 範例:
+// API_URL: 'https://script.google.com/macros/s/AKfycbxxx.../exec'
+// PASSWORD: 'my_secure_password_123'
+
+// ===== api.js =====
+// ===== API 通訊模組 =====
+const api = {
+    // 通用請求函數
+    async request(action, method = 'GET', data = null) {
+        const password = localStorage.getItem(CONFIG.PASSWORD_KEY);
+        
+        if (!password) {
+            throw new Error('未登入');
+        }
+        
+        const url = `${CONFIG.API_URL}?action=${action}&password=${password}`;
+        
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        if (data && method === 'POST') {
+            options.body = JSON.stringify(data);
+        }
+        
+        try {
+            const response = await fetch(url, options);
+            const result = await response.json();
+            
+            if (result.error === 'Unauthorized') {
+                localStorage.removeItem(CONFIG.PASSWORD_KEY);
+                app.logout();
+                throw new Error('認證失敗,請重新登入');
+            }
+            
+            return result;
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    },
+    
+    // GET 請求
+    async get(action) {
+        return await this.request(action, 'GET');
+    },
+    
+    // POST 請求
+    async post(action, data) {
+        return await this.request(action, 'POST', data);
+    },
+    
+    // ===== 儀表板 =====
+    async getDashboard() {
+        return await this.get('getDashboard');
+    },
+    
+    // ===== 會員管理 =====
+    async getMembers() {
+        return await this.get('getMembers');
+    },
+    
+    async updateMember(data) {
+        return await this.post('updateMember', data);
+    },
+    
+    // ===== 紅包活動 =====
+    async getEvent() {
+        return await this.get('getEvent');
+    },
+    
+    async updateEvent(data) {
+        return await this.post('updateEvent', data);
+    },
+    
+    async getRedPacketRecords(limit = 50) {
+        return await this.get(`getRedPacketRecords&limit=${limit}`);
+    },
+    
+    // ===== 自動回應 =====
+    async getAutoReplies() {
+        return await this.get('getAutoReplies');
+    },
+    
+    async saveAutoReply(data) {
+        return await this.post('saveAutoReply', data);
+    },
+    
+    async deleteAutoReply(keyword) {
+        return await this.post('deleteAutoReply', { keyword });
+    },
+    
+    // ===== 今日折抵 =====
+    async processDeduction(deductionList) {
+        return await this.post('processDeduction', deductionList);
+    }
+};
+
+// ===== app.js =====
+// ===== 主應用程式 =====
+const app = {
+    currentPage: 'dashboard',
+    
+    // 初始化
+    init() {
+        // ✅ 永遠顯示登入頁面 (不自動登入)
+        this.showLogin();
+        
+        // 登入表單事件
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.login();
+            });
+        }
+        
+        // 會員搜尋事件
+        const memberSearch = document.getElementById('memberSearch');
+        if (memberSearch) {
+            memberSearch.addEventListener('input', (e) => {
+                members.search(e.target.value);
+            });
+        }
+    },
+    
+    // 登入
+    async login() {
+        const password = document.getElementById('passwordInput').value;
+        const errorEl = document.getElementById('loginError');
+        const loginBtn = document.getElementById('loginBtn');
+        
+        if (!password) {
+            errorEl.textContent = '請輸入密碼';
+            return;
+        }
+        
+        // ✅ 顯示 loading 狀態
+        loginBtn.classList.add('loading');
+        loginBtn.disabled = true;
+        errorEl.textContent = '';
+        
+        // ✅ 暫存密碼到 sessionStorage (關閉瀏覽器就清除)
+        sessionStorage.setItem(CONFIG.PASSWORD_KEY, password);
+        
+        try {
+            // 測試 API 連線
+            const result = await api.getDashboard();
+            
+            if (result.success) {
+                this.showApp();
+                this.navigateTo('dashboard');
+                this.showToast('登入成功', 'success');
+            } else {
+                throw new Error('登入失敗');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
+            errorEl.textContent = '密碼錯誤或無法連接伺服器';
+            this.showToast('登入失敗', 'error');
+            
+            // ✅ 移除 loading 狀態
+            loginBtn.classList.remove('loading');
+            loginBtn.disabled = false;
+        }
+    },
+    
+    // 登出
+    logout() {
+        if (confirm('確定要登出嗎?')) {
+            sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
+            this.showLogin();
+            this.showToast('已登出', 'info');
+        }
+    },
+    
+    // 顯示登入頁
+    showLogin() {
+        const loginPage = document.getElementById('loginPage');
+        const appContainer = document.getElementById('appContainer');
+        
+        if (loginPage) loginPage.classList.add('active');
+        if (appContainer) appContainer.style.display = 'none';
+        
+        const passwordInput = document.getElementById('passwordInput');
+        if (passwordInput) passwordInput.value = '';
+    },
+    
+    // 顯示應用程式
+    showApp() {
+        console.log('showApp called'); // Debug
+        
+        const loginPage = document.getElementById('loginPage');
+        const appContainer = document.getElementById('appContainer');
+        
+        if (loginPage) {
+            loginPage.classList.remove('active');
+            loginPage.style.display = 'none'; // ← 強制隱藏
+        }
+        
+        if (appContainer) {
+            appContainer.style.display = 'block'; // ← 強制顯示
+        }
+        
+        console.log('App should be visible now'); // Debug
+    },
+    
+    // 頁面導航
+    navigateTo(page) {
+        console.log('Navigate to:', page); // Debug
+        
+        // 隱藏所有頁面
+        const allPages = document.querySelectorAll('#appContainer .page');
+        allPages.forEach(p => {
+            p.classList.remove('active');
+        });
+        
+        // 顯示目標頁面
+        const targetPage = document.getElementById(`${page}Page`);
+        if (targetPage) {
+            targetPage.classList.add('active');
+        }
+        
+        // 更新導航按鈕狀態
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        const navBtn = document.querySelector(`[data-page="${page}"]`);
+        if (navBtn) {
+            navBtn.classList.add('active');
+        }
+        
+        // 記錄當前頁面
+        this.currentPage = page;
+        
+        // 載入頁面資料
+        this.loadPageData(page);
+    },
+    
+    // 載入頁面資料
+    async loadPageData(page) {
+        try {
+            switch(page) {
+                case 'dashboard':
+                    await dashboard.load();
+                    break;
+                case 'members':
+                    await members.load();
+                    break;
+                case 'redpacket':
+                    await redpacket.load();
+                    break;
+                case 'autoreply':
+                    await autoreply.load();
+                    break;
+            }
+        } catch (error) {
+            console.error('Load page data error:', error);
+        }
+    },
+    
+    // Toast 通知
+    showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    },
+    
+    // 顯示 Modal
+    showModal(modalId) {
+        const overlay = document.getElementById('modalOverlay');
+        const modal = document.getElementById(modalId);
+        
+        if (overlay) overlay.classList.add('active');
+        if (modal) modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    },
+    
+    // 隱藏 Modal
+    hideModal(modalId) {
+        const overlay = document.getElementById('modalOverlay');
+        const modal = document.getElementById(modalId);
+        
+        if (overlay) overlay.classList.remove('active');
+        if (modal) modal.classList.remove('active');
+        document.body.style.overflow = '';
+    },
+    
+    // 格式化金額
+    formatCurrency(amount) {
+        return new Intl.NumberFormat('zh-TW', {
+            style: 'currency',
+            currency: 'TWD',
+            minimumFractionDigits: 0
+        }).format(amount);
+    },
+    
+    // 格式化時間
+    formatDateTime(dateStr) {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return date.toLocaleString('zh-TW', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    },
+    
+    // 格式化相對時間
+    formatRelativeTime(dateStr) {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (minutes < 1) return '剛剛';
+        if (minutes < 60) return `${minutes}分鐘前`;
+        if (hours < 24) return `${hours}小時前`;
+        if (days < 7) return `${days}天前`;
+        return this.formatDateTime(dateStr);
+    },
+    
+    // 複製到剪貼簿
+    async copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            this.showToast('已複製到剪貼簿', 'success');
+        } catch (err) {
+            this.showToast('複製失敗', 'error');
+        }
+    }
+};
+
+// Modal 點擊遮罩關閉
+const modalOverlay = document.getElementById('modalOverlay');
+if (modalOverlay) {
+    modalOverlay.addEventListener('click', () => {
+        document.querySelectorAll('.modal.active').forEach(modal => {
+            const modalId = modal.id;
+            if (modalId === 'memberModal') {
+                members.closeModal();
+            } else if (modalId === 'replyModal') {
+                autoreply.closeModal();
+            }
+        });
+    });
+}
+
+// 頁面載入完成後初始化
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing app...'); // Debug
+    app.init();
+});
+
+// ===== dashboard.js =====
+// ===== 儀表板模組 =====
+const dashboard = {
+    data: null,
+    
+    // 載入儀表板資料
+    async load() {
+        try {
+            // 載入統計資料
+            const result = await api.getDashboard();
+            
+            if (result.success) {
+                this.data = result.data;
+                this.render();
+            }
+            
+            // 載入近期紅包記錄
+            await this.loadRecentActivity();
+            
+        } catch (error) {
+            console.error('載入儀表板失敗:', error);
+            app.showToast('載入失敗', 'error');
+        }
+    },
+    
+    // 渲染統計卡片
+    render() {
+        if (!this.data) return;
+        
+        document.getElementById('totalMembers').textContent = 
+            this.data.totalMembers + ' 人';
+        
+        document.getElementById('totalBalance').textContent = 
+            app.formatCurrency(this.data.totalBalance);
+        
+        document.getElementById('todayRedPackets').textContent = 
+            this.data.todayRedPackets + ' 人';
+        
+        document.getElementById('autoReplyCount').textContent = 
+            this.data.autoReplyCount + ' 組';
+    },
+    
+    // 載入近期動態
+    async loadRecentActivity() {
+        const container = document.getElementById('recentActivity');
+        
+        try {
+            const result = await api.getRedPacketRecords(10);
+            
+            if (result.success && result.data.length > 0) {
+                container.innerHTML = result.data.map(record => `
+                    <div class="activity-item">
+                        <div class="activity-icon">🧧</div>
+                        <div class="activity-info">
+                            <div class="activity-title">${record.name} 領取 ${record.eventName}</div>
+                            <div class="activity-time">${app.formatRelativeTime(record.time)}</div>
+                        </div>
+                        <div class="activity-amount">+${record.amount}</div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<div class="loading">暫無動態記錄</div>';
+            }
+        } catch (error) {
+            console.error('載入近期動態失敗:', error);
+            container.innerHTML = '<div class="loading">載入失敗</div>';
+        }
+    }
+};
+
+// ===== members.js =====
+// ===== 會員管理模組 =====
+const members = {
+    allMembers: [],
+    filteredMembers: [],
+    currentMember: null,
+    originalBalance: 0,
+    balanceChange: 0,
+    
+    // 載入會員列表
+    async load() {
+        const container = document.getElementById('membersList');
+        container.innerHTML = '<div class="loading">載入中...</div>';
+        
+        try {
+            const result = await api.getMembers();
+            
+            if (result.success) {
+                this.allMembers = result.data;
+                this.filteredMembers = [...this.allMembers];
+                this.render();
+            }
+        } catch (error) {
+            console.error('載入會員失敗:', error);
+            container.innerHTML = '<div class="loading">載入失敗</div>';
+            app.showToast('載入會員失敗', 'error');
+        }
+    },
+    
+    // 重新載入
+    async refresh() {
+        app.showToast('重新載入中...', 'info');
+        await this.load();
+    },
+    
+    // 搜尋會員
+    search(keyword) {
+        if (!keyword.trim()) {
+            this.filteredMembers = [...this.allMembers];
+        } else {
+            const lowerKeyword = keyword.toLowerCase();
+            this.filteredMembers = this.allMembers.filter(member => 
+                member.id.toLowerCase().includes(lowerKeyword) ||
+                member.name.toLowerCase().includes(lowerKeyword) ||
+                (member.lineUid && member.lineUid.toLowerCase().includes(lowerKeyword))
+            );
+        }
+        this.render();
+    },
+    
+    // 渲染會員列表
+    render() {
+        const container = document.getElementById('membersList');
+        
+        if (this.filteredMembers.length === 0) {
+            container.innerHTML = '<div class="loading">找不到符合的會員</div>';
+            return;
+        }
+        
+        container.innerHTML = this.filteredMembers.map(member => `
+            <div class="member-card" onclick="members.showEditModal('${member.id}')">
+                <div class="member-header">
+                    <div class="member-id">${member.id}</div>
+                    <div class="member-status ${member.status === '啟用' ? 'active' : 'inactive'}">
+                        ${member.status || '未知'}
+                    </div>
+                </div>
+                <div class="member-info">
+                    <div class="member-name">${member.name}</div>
+                    <div class="member-balance">${app.formatCurrency(member.balance || 0)}</div>
+                </div>
+            </div>
+        `).join('');
+    },
+    
+    // 顯示編輯 Modal
+    showEditModal(memberId) {
+        this.currentMember = this.allMembers.find(m => m.id === memberId);
+        if (!this.currentMember) return;
+        
+        this.originalBalance = this.currentMember.balance || 0;
+        this.balanceChange = 0;
+        
+        document.getElementById('modalMemberId').textContent = this.currentMember.id;
+        document.getElementById('modalMemberName').textContent = this.currentMember.name;
+        document.getElementById('modalMemberUid').textContent = this.currentMember.lineUid || '-';
+        document.getElementById('modalBalance').value = this.originalBalance;
+        document.getElementById('modalStatus').value = this.currentMember.status || '啟用';
+        document.getElementById('modalNote').value = this.currentMember.note || '';
+        document.getElementById('customAdjust').value = '';
+        
+        // 點擊 UID 複製
+        document.getElementById('modalMemberUid').onclick = () => {
+            if (this.currentMember.lineUid) {
+                app.copyToClipboard(this.currentMember.lineUid);
+            }
+        };
+        
+        app.showModal('memberModal');
+    },
+    
+    // 關閉 Modal
+    closeModal() {
+        app.hideModal('memberModal');
+        this.currentMember = null;
+        this.balanceChange = 0;
+    },
+    
+    // 調整餘額
+    adjustBalance(amount) {
+        this.balanceChange += amount;
+        const newBalance = this.originalBalance + this.balanceChange;
+        document.getElementById('modalBalance').value = newBalance;
+    },
+    
+    // 套用自訂調整
+    applyCustomAdjust() {
+        const customAmount = parseInt(document.getElementById('customAdjust').value);
+        if (isNaN(customAmount)) {
+            app.showToast('請輸入有效數字', 'warning');
+            return;
+        }
+        this.adjustBalance(customAmount);
+        document.getElementById('customAdjust').value = '';
+    },
+    
+    // 儲存會員
+    async saveMember() {
+        if (!this.currentMember) return;
+        
+        const newBalance = parseInt(document.getElementById('modalBalance').value);
+        const status = document.getElementById('modalStatus').value;
+        const note = document.getElementById('modalNote').value;
+        
+        // 確認大額調整
+        if (Math.abs(this.balanceChange) >= 10000) {
+            if (!confirm(`確定要調整 ${this.balanceChange >= 0 ? '+' : ''}${this.balanceChange} 元嗎?`)) {
+                return;
+            }
+        }
+        
+        try {
+            const data = {
+                memberId: this.currentMember.id,
+                balanceChange: this.balanceChange,
+                status: status,
+                note: note
+            };
+            
+            const result = await api.updateMember(data);
+            
+            if (result.success) {
+                app.showToast('儲存成功', 'success');
+                this.closeModal();
+                
+                // 更新本地資料
+                const member = this.allMembers.find(m => m.id === this.currentMember.id);
+                if (member) {
+                    member.balance = newBalance;
+                    member.status = status;
+                    member.note = note;
+                }
+                
+                this.render();
+            } else {
+                app.showToast(result.error || '儲存失敗', 'error');
+            }
+        } catch (error) {
+            console.error('儲存會員失敗:', error);
+            app.showToast('儲存失敗', 'error');
+        }
+    }
+};
+
+// ===== deduction.js =====
+// ===== 今日折抵模組 =====
+const deduction = {
+    parsedData: [],
+    membersMap: {},
+    
+    // 解析資料
+    async parseData() {
+        const input = document.getElementById('deductionInput').value.trim();
+        
+        if (!input) {
+            app.showToast('請貼上折抵資料', 'warning');
+            return;
+        }
+        
+        // 載入會員資料(用於驗證)
+        await this.loadMembers();
+        
+        this.parsedData = [];
+        const lines = input.split('\n');
+        
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            
+            // 支援多種分隔符: Tab, 逗號, 空格
+            let parts = trimmed.split(/[\t,\s]+/);
+            
+            if (parts.length < 2) continue;
+            
+            const account = parts[0].trim();
+            const fee = parseFloat(parts[1]) || 0;
+            
+            if (!account || fee <= 0) continue;
+            
+            const member = this.membersMap[account];
+            
+            this.parsedData.push({
+                account: account,
+                fee: fee,
+                member: member,
+                canDeduct: member ? Math.min(member.balance, fee) : 0,
+                remaining: member ? member.balance - Math.min(member.balance, fee) : 0,
+                status: member ? (member.balance >= fee ? 'success' : 'warning') : 'error'
+            });
+        }
+        
+        if (this.parsedData.length === 0) {
+            app.showToast('未找到有效資料', 'warning');
+            return;
+        }
+        
+        this.showPreview();
+    },
+    
+    // 載入會員資料
+    async loadMembers() {
+        try {
+            const result = await api.getMembers();
+            if (result.success) {
+                this.membersMap = {};
+                result.data.forEach(member => {
+                    this.membersMap[member.id] = {
+                        id: member.id,
+                        name: member.name,
+                        balance: member.balance || 0,
+                        lineUid: member.lineUid
+                    };
+                });
+            }
+        } catch (error) {
+            console.error('載入會員資料失敗:', error);
+        }
+    },
+    
+    // 顯示預覽
+    showPreview() {
+        const previewDiv = document.getElementById('deductionPreview');
+        const tableDiv = document.getElementById('previewTable');
+        
+        let html = '<div class="preview-table"><table>';
+        html += '<thead><tr>';
+        html += '<th>帳號</th>';
+        html += '<th>手續費</th>';
+        html += '<th>會員餘額</th>';
+        html += '<th>可扣抵</th>';
+        html += '<th>剩餘</th>';
+        html += '<th>狀態</th>';
+        html += '</tr></thead><tbody>';
+        
+        this.parsedData.forEach(item => {
+            const statusText = {
+                'success': '✅ 正常',
+                'warning': '⚠️ 餘額不足',
+                'error': '❌ 未綁定'
+            };
+            
+            html += `<tr class="${item.status}">`;
+            html += `<td>${item.account}</td>`;
+            html += `<td>${item.fee}</td>`;
+            html += `<td>${item.member ? item.member.balance : '-'}</td>`;
+            html += `<td>${item.canDeduct}</td>`;
+            html += `<td>${item.member ? item.remaining : '-'}</td>`;
+            html += `<td>${statusText[item.status]}</td>`;
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table></div>';
+        
+        tableDiv.innerHTML = html;
+        previewDiv.style.display = 'block';
+        
+        // 滾動到預覽區
+        previewDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    
+    // 清除預覽
+    clearPreview() {
+        document.getElementById('deductionInput').value = '';
+        document.getElementById('deductionPreview').style.display = 'none';
+        document.getElementById('deductionResult').style.display = 'none';
+        this.parsedData = [];
+    },
+    
+    // 執行折抵
+    async execute() {
+        if (this.parsedData.length === 0) {
+            app.showToast('沒有資料可執行', 'warning');
+            return;
+        }
+        
+        // 確認執行
+        const totalAmount = this.parsedData.reduce((sum, item) => sum + item.canDeduct, 0);
+        const confirmMsg = `確定要執行折抵嗎?\n\n` +
+                          `共 ${this.parsedData.length} 筆\n` +
+                          `總扣抵金額: ${app.formatCurrency(totalAmount)}`;
+        
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+        
+        try {
+            app.showToast('執行中...', 'info');
+            
+            // 準備資料
+            const deductionList = this.parsedData
+                .filter(item => item.member) // 只處理有綁定的會員
+                .map(item => ({
+                    account: item.account,
+                    fee: item.fee
+                }));
+            
+            const result = await api.processDeduction(deductionList);
+            
+            if (result.success) {
+                this.showResult(result.results);
+                app.showToast('執行成功', 'success');
+            } else {
+                app.showToast(result.error || '執行失敗', 'error');
+            }
+        } catch (error) {
+            console.error('執行折抵失敗:', error);
+            app.showToast('執行失敗', 'error');
+        }
+    },
+    
+    // 顯示執行結果
+    showResult(results) {
+        const resultDiv = document.getElementById('deductionResult');
+        const tableDiv = document.getElementById('resultTable');
+        
+        let html = '<div class="preview-table"><table>';
+        html += '<thead><tr>';
+        html += '<th>帳號</th>';
+        html += '<th>扣抵金額</th>';
+        html += '<th>剩餘餘額</th>';
+        html += '<th>狀態</th>';
+        html += '</tr></thead><tbody>';
+        
+        results.forEach(item => {
+            html += `<tr class="${item.success ? 'success' : 'error'}">`;
+            html += `<td>${item.account}</td>`;
+            html += `<td>${item.deducted || '-'}</td>`;
+            html += `<td>${item.newBalance !== undefined ? item.newBalance : '-'}</td>`;
+            html += `<td>${item.success ? '✅ 成功' : '❌ ' + (item.error || '失敗')}</td>`;
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table></div>';
+        
+        tableDiv.innerHTML = html;
+        resultDiv.style.display = 'block';
+        
+        // 清空輸入框
+        document.getElementById('deductionInput').value = '';
+        document.getElementById('deductionPreview').style.display = 'none';
+        
+        // 滾動到結果區
+        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+// ===== redpacket.js =====
+// ===== 紅包活動模組 =====
+const redpacket = {
+    currentEvent: null,
+    records: [],
+    
+    // 載入紅包活動資料
+    async load() {
+        try {
+            // 載入活動設定
+            const eventResult = await api.getEvent();
+            if (eventResult.success && eventResult.data) {
+                this.currentEvent = eventResult.data;
+                this.fillForm();
+            }
+            
+            // 載入領取記錄
+            const recordResult = await api.getRedPacketRecords(50);
+            if (recordResult.success) {
+                this.records = recordResult.data;
+                this.renderStats();
+                this.renderClaimList();
+            }
+        } catch (error) {
+            console.error('載入紅包資料失敗:', error);
+            app.showToast('載入失敗', 'error');
+        }
+    },
+    
+    // 重新載入
+    async refresh() {
+        app.showToast('重新載入中...', 'info');
+        await this.load();
+    },
+    
+    // 填入表單
+    fillForm() {
+        if (!this.currentEvent) return;
+        
+        document.getElementById('eventName').value = this.currentEvent.name || '';
+        document.getElementById('eventKeyword').value = this.currentEvent.keyword || '';
+        document.getElementById('eventBonus').value = this.currentEvent.bonus || '';
+        document.getElementById('eventContent').value = this.currentEvent.content || '';
+        document.getElementById('eventClaimedMsg').value = this.currentEvent.claimedMsg || '';
+        
+        // 時間格式轉換 (YYYY-MM-DD HH:mm:ss -> YYYY-MM-DDTHH:mm)
+        if (this.currentEvent.start) {
+            const startDate = new Date(this.currentEvent.start);
+            document.getElementById('eventStart').value = this.formatDateTimeLocal(startDate);
+        }
+        
+        if (this.currentEvent.end) {
+            const endDate = new Date(this.currentEvent.end);
+            document.getElementById('eventEnd').value = this.formatDateTimeLocal(endDate);
+        }
+    },
+    
+    // 格式化日期時間為 datetime-local 格式
+    formatDateTimeLocal(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    },
+    
+    // 渲染統計
+    renderStats() {
+        const eventName = this.currentEvent?.name || '';
+        
+        // 過濾當前活動的記錄
+        const currentEventRecords = this.records.filter(r => r.eventName === eventName);
+        
+        const claimCount = currentEventRecords.length;
+        const totalAmount = currentEventRecords.reduce((sum, r) => sum + (r.amount || 0), 0);
+        
+        document.getElementById('eventClaimCount').textContent = claimCount + ' 人';
+        document.getElementById('eventTotalAmount').textContent = app.formatCurrency(totalAmount);
+    },
+    
+    // 渲染領取名單
+    renderClaimList() {
+        const container = document.getElementById('claimList');
+        
+        if (this.records.length === 0) {
+            container.innerHTML = '<div class="loading">暫無領取記錄</div>';
+            return;
+        }
+        
+        container.innerHTML = this.records.map(record => `
+            <div class="claim-item">
+                <div class="claim-info">
+                    <div class="claim-name">${record.name} - ${record.eventName}</div>
+                    <div class="claim-time">${app.formatRelativeTime(record.time)}</div>
+                </div>
+                <div class="claim-amount">+${record.amount}</div>
+            </div>
+        `).join('');
+    }
+};
+
+// 表單提交事件
+document.getElementById('eventForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const data = {
+        name: document.getElementById('eventName').value,
+        keyword: document.getElementById('eventKeyword').value,
+        bonus: parseInt(document.getElementById('eventBonus').value),
+        content: document.getElementById('eventContent').value,
+        claimedMsg: document.getElementById('eventClaimedMsg').value,
+        start: document.getElementById('eventStart').value,
+        end: document.getElementById('eventEnd').value
+    };
+    
+    // 驗證
+    if (!data.name || !data.keyword || !data.bonus || !data.start || !data.end) {
+        app.showToast('請填寫所有必填欄位', 'warning');
+        return;
+    }
+    
+    // 確認儲存
+    if (!confirm('確定要儲存紅包活動設定嗎?')) {
+        return;
+    }
+    
+    try {
+        const result = await api.updateEvent(data);
+        
+        if (result.success) {
+            app.showToast('儲存成功', 'success');
+            redpacket.currentEvent = data;
+            await redpacket.load();
+        } else {
+            app.showToast(result.error || '儲存失敗', 'error');
+        }
+    } catch (error) {
+        console.error('儲存紅包活動失敗:', error);
+        app.showToast('儲存失敗', 'error');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '儲存';
+            }
+    }
+});
+
+// ===== autoreply.js =====
+// ===== 自動回應模組 =====
+const autoreply = {
+    replies: [],
+    currentReply: null,
+    editMode: false,
+    
+    // 載入自動回應列表
+    async load() {
+        const container = document.getElementById('autoReplyList');
+        container.innerHTML = '<div class="loading">載入中...</div>';
+        
+        try {
+            const result = await api.getAutoReplies();
+            
+            if (result.success) {
+                this.replies = result.data;
+                this.render();
+            }
+        } catch (error) {
+            console.error('載入自動回應失敗:', error);
+            container.innerHTML = '<div class="loading">載入失敗</div>';
+            app.showToast('載入失敗', 'error');
+        }
+    },
+    
+    // 渲染列表
+    render() {
+        const container = document.getElementById('autoReplyList');
+        
+        if (this.replies.length === 0) {
+            container.innerHTML = '<div class="loading">尚未設定自動回應</div>';
+            return;
+        }
+        
+        container.innerHTML = this.replies.map((reply, index) => `
+            <div class="reply-card" onclick="autoreply.showEditModal(${index})">
+                <div class="reply-header">
+                    <div class="reply-keyword">${reply.keyword}</div>
+                    <div class="reply-toggle ${reply.status === '啟用' ? 'active' : ''}" 
+                         onclick="event.stopPropagation(); autoreply.toggleStatus(${index})">
+                    </div>
+                </div>
+                <div class="reply-content">${reply.content}</div>
+            </div>
+        `).join('');
+    },
+    
+    // 切換狀態
+    async toggleStatus(index) {
+        const reply = this.replies[index];
+        const newStatus = reply.status === '啟用' ? '停用' : '啟用';
+        
+        try {
+            const data = {
+                keyword: reply.keyword,
+                content: reply.content,
+                status: newStatus,
+                startTime: reply.startTime,
+                endTime: reply.endTime
+            };
+            
+            // ✅ 防呆
+        const saveBtn = document.querySelector('#replyModal .btn-success');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.textContent = '儲存中...';
+        }
+        
+        const result = await api.saveAutoReply(data);
+            
+            if (result.success) {
+                reply.status = newStatus;
+                this.render();
+                app.showToast(`已${newStatus}`, 'success');
+            }
+        } catch (error) {
+            console.error('切換狀態失敗:', error);
+            app.showToast('操作失敗', 'error');
+        }
+    },
+    
+    // 顯示新增 Modal
+    showAddModal() {
+        this.editMode = false;
+        this.currentReply = null;
+        
+        document.getElementById('replyModalTitle').textContent = '新增自動回應';
+        document.getElementById('replyKeyword').value = '';
+        document.getElementById('replyContent').value = '';
+        document.getElementById('replyStatus').value = '啟用';
+        document.getElementById('replyStart').value = '';
+        document.getElementById('replyEnd').value = '';
+        document.getElementById('deleteReplyBtn').style.display = 'none';
+        
+        app.showModal('replyModal');
+    },
+    
+    // 顯示編輯 Modal
+    showEditModal(index) {
+        this.editMode = true;
+        this.currentReply = this.replies[index];
+        
+        document.getElementById('replyModalTitle').textContent = '編輯自動回應';
+        document.getElementById('replyKeyword').value = this.currentReply.keyword;
+        document.getElementById('replyContent').value = this.currentReply.content;
+        document.getElementById('replyStatus').value = this.currentReply.status || '啟用';
+        
+        // 時間格式轉換
+        if (this.currentReply.startTime) {
+            const startDate = new Date(this.currentReply.startTime);
+            document.getElementById('replyStart').value = this.formatDateTimeLocal(startDate);
+        } else {
+            document.getElementById('replyStart').value = '';
+        }
+        
+        if (this.currentReply.endTime) {
+            const endDate = new Date(this.currentReply.endTime);
+            document.getElementById('replyEnd').value = this.formatDateTimeLocal(endDate);
+        } else {
+            document.getElementById('replyEnd').value = '';
+        }
+        
+        document.getElementById('deleteReplyBtn').style.display = 'block';
+        
+        app.showModal('replyModal');
+    },
+    
+    // 格式化日期時間
+    formatDateTimeLocal(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    },
+    
+    // 關閉 Modal
+    closeModal() {
+        app.hideModal('replyModal');
+        this.currentReply = null;
+    },
+    
+    // 儲存自動回應
+    async saveReply() {
+        const keyword = document.getElementById('replyKeyword').value.trim();
+        const content = document.getElementById('replyContent').value.trim();
+        const status = document.getElementById('replyStatus').value;
+        const startTime = document.getElementById('replyStart').value;
+        const endTime = document.getElementById('replyEnd').value;
+        
+        if (!keyword || !content) {
+            app.showToast('請填寫關鍵字和回覆內容', 'warning');
+            return;
+        }
+        
+        try {
+            const data = {
+                keyword: keyword,
+                content: content,
+                status: status,
+                startTime: startTime || null,
+                endTime: endTime || null
+            };
+            
+            // ✅ 防呆
+        const saveBtn = document.querySelector('#replyModal .btn-success');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.textContent = '儲存中...';
+        }
+        
+        const result = await api.saveAutoReply(data);
+            
+            if (result.success) {
+                app.showToast('儲存成功', 'success');
+                this.closeModal();
+                await this.load();
+            } else {
+                app.showToast(result.error || '儲存失敗', 'error');
+            }
+        } catch (error) {
+            console.error('儲存自動回應失敗:', error);
+            app.showToast('儲存失敗', 'error');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '儲存';
+            }
+        }
+    },
+    
+    // 刪除自動回應
+    async deleteReply() {
+        if (!this.currentReply) return;
+        
+        if (!confirm(`確定要刪除「${this.currentReply.keyword}」嗎?`)) {
+            return;
+        }
+        
+        try {
+            const result = await api.deleteAutoReply(this.currentReply.keyword);
+            
+            if (result.success) {
+                app.showToast('刪除成功', 'success');
+                this.closeModal();
+                await this.load();
+            } else {
+                app.showToast(result.error || '刪除失敗', 'error');
+            }
+        } catch (error) {
+            console.error('刪除自動回應失敗:', error);
+            app.showToast('刪除失敗', 'error');
+        }
+    }
+};
+
+</script>
 </body>
 </html>
