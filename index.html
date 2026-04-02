@@ -1,57 +1,385 @@
-<!-- 會員編輯 Modal - 修正版 -->
-<div id="memberModal" class="modal">
-    <div class="modal-header">
-        <h3>編輯會員</h3>
-        <button class="btn-close" onclick="members.closeModal()">✕</button>
-    </div>
-    <div class="modal-content">
-        <!-- ✅ 改成兩行顯示 -->
-        <div class="member-info-compact">
-            <div class="info-line">
-                <span class="info-label">會員 ID</span>
-                <span id="modalMemberId" class="info-value"></span>
-                <span class="info-label">姓名</span>
-                <span id="modalMemberName" class="info-value"></span>
-            </div>
-            <div class="info-line">
-                <span class="info-label">LINE UID</span>
-                <span id="modalMemberUid" class="info-value copy-text"></span>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>折扣金餘額</label>
-            <div class="balance-adjust">
-                <input type="number" id="modalBalance" readonly>
-                <div class="adjust-buttons">
-                    <button onclick="members.adjustBalance(-500)">-500</button>
-                    <button onclick="members.adjustBalance(-100)">-100</button>
-                    <button onclick="members.adjustBalance(100)">+100</button>
-                    <button onclick="members.adjustBalance(500)">+500</button>
-                    <button onclick="members.adjustBalance(1000)">+1000</button>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0f1e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>LINE 會員管理</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- 登入頁面 -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="logo">
+                    <div class="logo-icon">🎯</div>
+                    <h1>LINE 會員管理</h1>
                 </div>
-                <div class="custom-adjust">
-                    <input type="number" id="customAdjust" placeholder="自訂金額 (正負皆可)">
-                    <button onclick="members.applyCustomAdjust()">套用</button>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <input type="password" id="passwordInput" placeholder="請輸入管理密碼" required>
+                    </div>
+                    <button type="submit" class="btn-primary">登入</button>
+                </form>
+                <div id="loginError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要應用 -->
+    <div id="appContainer" class="app-container">
+        <!-- 儀表板頁面 -->
+        <div id="dashboardPage" class="page">
+            <div class="page-header">
+                <h2>📊 儀表板</h2>
+                <button class="btn-icon" onclick="app.logout()">🚪</button>
+            </div>
+            <div class="page-content">
+                <!-- 統計卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <div class="stat-label">會員總數</div>
+                            <div class="stat-value" id="totalMembers">-</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <div class="stat-label">折扣金總額</div>
+                            <div class="stat-value" id="totalBalance">-</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🧧</div>
+                        <div class="stat-info">
+                            <div class="stat-label">今日紅包</div>
+                            <div class="stat-value" id="todayRedPackets">-</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💬</div>
+                        <div class="stat-info">
+                            <div class="stat-label">自動回應</div>
+                            <div class="stat-value" id="autoReplyCount">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快捷操作 -->
+                <div class="section">
+                    <h3>⚡ 快捷操作</h3>
+                    <div class="quick-actions">
+                        <button class="action-btn" onclick="app.navigateTo('members')">
+                            <span class="action-icon">👥</span>
+                            <span>會員管理</span>
+                        </button>
+                        <button class="action-btn" onclick="app.navigateTo('deduction')">
+                            <span class="action-icon">💰</span>
+                            <span>今日折抵</span>
+                        </button>
+                        <button class="action-btn" onclick="app.navigateTo('redpacket')">
+                            <span class="action-icon">🧧</span>
+                            <span>紅包活動</span>
+                        </button>
+                        <button class="action-btn" onclick="app.navigateTo('autoreply')">
+                            <span class="action-icon">💬</span>
+                            <span>自動回應</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 近期動態 -->
+                <div class="section">
+                    <h3>📈 近期動態</h3>
+                    <div id="recentActivity" class="activity-list">
+                        <div class="loading">載入中...</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="form-group">
-            <label>狀態</label>
-            <select id="modalStatus">
-                <option value="啟用">啟用</option>
-                <option value="停用">停用</option>
-            </select>
+        <!-- 會員管理頁面 -->
+        <div id="membersPage" class="page">
+            <div class="page-header">
+                <h2>👥 會員管理</h2>
+                <button class="btn-icon" onclick="members.refresh()">🔄</button>
+            </div>
+            <div class="page-content">
+                <!-- 搜尋列 -->
+                <div class="search-bar">
+                    <input type="text" id="memberSearch" placeholder="🔍 搜尋會員 ID、姓名、LINE UID...">
+                </div>
+
+                <!-- 會員列表 -->
+                <div id="membersList" class="members-list">
+                    <div class="loading">載入中...</div>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>備註</label>
-            <textarea id="modalNote" rows="3" placeholder="輸入備註..."></textarea>
+        <!-- 今日折抵頁面 -->
+        <div id="deductionPage" class="page">
+            <div class="page-header">
+                <h2>💰 今日折抵</h2>
+            </div>
+            <div class="page-content">
+                <div class="section">
+                    <h3>📝 貼上今日折抵資料</h3>
+                    <p class="hint">從 Excel 複製貼上,支援 Tab、逗號、空格分隔</p>
+                    <textarea id="deductionInput" placeholder="範例格式:
+R8008  6440
+R8011  40
+R8017  20
+
+或:
+R8008, 6440
+R8011, 40"></textarea>
+                    <button class="btn-primary" onclick="deduction.parseData()">📊 解析資料</button>
+                </div>
+
+                <!-- 預覽區 -->
+                <div id="deductionPreview" class="section" style="display: none;">
+                    <h3>👀 預覽與確認</h3>
+                    <div id="previewTable"></div>
+                    <div class="action-buttons">
+                        <button class="btn-success" onclick="deduction.execute()">✅ 執行折抵</button>
+                        <button class="btn-secondary" onclick="deduction.clearPreview()">❌ 清除</button>
+                    </div>
+                </div>
+
+                <!-- 執行結果 -->
+                <div id="deductionResult" class="section" style="display: none;">
+                    <h3>📊 執行結果</h3>
+                    <div id="resultTable"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 紅包活動頁面 -->
+        <div id="redpacketPage" class="page">
+            <div class="page-header">
+                <h2>🧧 紅包活動</h2>
+                <button class="btn-icon" onclick="redpacket.refresh()">🔄</button>
+            </div>
+            <div class="page-content">
+                <!-- 活動設定 -->
+                <div class="section">
+                    <h3>🎁 活動設定</h3>
+                    <form id="eventForm">
+                        <div class="form-group">
+                            <label>活動名稱</label>
+                            <input type="text" id="eventName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>觸發關鍵字</label>
+                            <input type="text" id="eventKeyword" required>
+                        </div>
+                        <div class="form-group">
+                            <label>贈送金額</label>
+                            <input type="number" id="eventBonus" required>
+                        </div>
+                        <div class="form-group">
+                            <label>領取成功訊息</label>
+                            <textarea id="eventContent" rows="6"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>重複領取提示</label>
+                            <textarea id="eventClaimedMsg" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>開始時間</label>
+                                <input type="datetime-local" id="eventStart" required>
+                            </div>
+                            <div class="form-group">
+                                <label>結束時間</label>
+                                <input type="datetime-local" id="eventEnd" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">💾 儲存設定</button>
+                    </form>
+                </div>
+
+                <!-- 活動數據 -->
+                <div class="section">
+                    <h3>📈 活動數據</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">領取人數</div>
+                            <div class="stat-value" id="eventClaimCount">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">總發送金額</div>
+                            <div class="stat-value" id="eventTotalAmount">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 領取名單 -->
+                <div class="section">
+                    <h3>📝 領取名單</h3>
+                    <div id="claimList" class="claim-list">
+                        <div class="loading">載入中...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 自動回應頁面 -->
+        <div id="autoreplyPage" class="page">
+            <div class="page-header">
+                <h2>💬 自動回應</h2>
+                <button class="btn-icon" onclick="autoreply.showAddModal()">➕</button>
+            </div>
+            <div class="page-content">
+                <div id="autoReplyList" class="reply-list">
+                    <div class="loading">載入中...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部導航 -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-page="dashboard" onclick="app.navigateTo('dashboard')">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">儀表板</span>
+            </button>
+            <button class="nav-item" data-page="members" onclick="app.navigateTo('members')">
+                <span class="nav-icon">👥</span>
+                <span class="nav-label">會員</span>
+            </button>
+            <button class="nav-item" data-page="deduction" onclick="app.navigateTo('deduction')">
+                <span class="nav-icon">💰</span>
+                <span class="nav-label">折抵</span>
+            </button>
+            <button class="nav-item" data-page="redpacket" onclick="app.navigateTo('redpacket')">
+                <span class="nav-icon">🧧</span>
+                <span class="nav-label">紅包</span>
+            </button>
+            <button class="nav-item" data-page="autoreply" onclick="app.navigateTo('autoreply')">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">回應</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Modal 遮罩 -->
+    <div id="modalOverlay" class="modal-overlay"></div>
+
+    <!-- 會員編輯 Modal -->
+    <div id="memberModal" class="modal">
+        <div class="modal-header">
+            <h3>編輯會員</h3>
+            <button class="btn-close" onclick="members.closeModal()">✕</button>
+        </div>
+        <div class="modal-content">
+            <div class="member-info-compact">
+                <div class="info-line">
+                    <span class="info-label">會員 ID</span>
+                    <span id="modalMemberId" class="info-value"></span>
+                    <span class="info-label">姓名</span>
+                    <span id="modalMemberName" class="info-value"></span>
+                </div>
+                <div class="info-line">
+                    <span class="info-label">LINE UID</span>
+                    <span id="modalMemberUid" class="info-value copy-text"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>折扣金餘額</label>
+                <div class="balance-adjust">
+                    <input type="number" id="modalBalance" readonly>
+                    <div class="adjust-buttons">
+                        <button onclick="members.adjustBalance(-500)">-500</button>
+                        <button onclick="members.adjustBalance(-100)">-100</button>
+                        <button onclick="members.adjustBalance(100)">+100</button>
+                        <button onclick="members.adjustBalance(500)">+500</button>
+                        <button onclick="members.adjustBalance(1000)">+1000</button>
+                    </div>
+                    <div class="custom-adjust">
+                        <input type="number" id="customAdjust" placeholder="自訂金額 (正負皆可)">
+                        <button onclick="members.applyCustomAdjust()">套用</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>狀態</label>
+                <select id="modalStatus">
+                    <option value="啟用">啟用</option>
+                    <option value="停用">停用</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>備註</label>
+                <textarea id="modalNote" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="members.closeModal()">取消</button>
+            <button class="btn-success" onclick="members.saveMember()">💾 儲存</button>
         </div>
     </div>
-    <div class="modal-footer">
-        <button class="btn-secondary" onclick="members.closeModal()">取消</button>
-        <button class="btn-success" onclick="members.saveMember()">💾 儲存</button>
+
+    <!-- 自動回應編輯 Modal -->
+    <div id="replyModal" class="modal">
+        <div class="modal-header">
+            <h3 id="replyModalTitle">新增自動回應</h3>
+            <button class="btn-close" onclick="autoreply.closeModal()">✕</button>
+        </div>
+        <div class="modal-content">
+            <div class="form-group">
+                <label>關鍵字</label>
+                <input type="text" id="replyKeyword" required>
+            </div>
+            <div class="form-group">
+                <label>回覆內容</label>
+                <textarea id="replyContent" rows="8"></textarea>
+            </div>
+            <div class="form-group">
+                <label>狀態</label>
+                <select id="replyStatus">
+                    <option value="啟用">啟用</option>
+                    <option value="停用">停用</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>開始時間 (選填)</label>
+                    <input type="datetime-local" id="replyStart">
+                </div>
+                <div class="form-group">
+                    <label>結束時間 (選填)</label>
+                    <input type="datetime-local" id="replyEnd">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-danger" onclick="autoreply.deleteReply()" id="deleteReplyBtn" style="display: none;">🗑️ 刪除</button>
+            <button class="btn-secondary" onclick="autoreply.closeModal()">取消</button>
+            <button class="btn-primary" onclick="autoreply.saveReply()">💾 儲存</button>
+        </div>
     </div>
-</div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/members.js"></script>
+    <script src="js/deduction.js"></script>
+    <script src="js/redpacket.js"></script>
+    <script src="js/autoreply.js"></script>
+</body>
+</html>
