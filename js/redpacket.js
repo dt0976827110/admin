@@ -137,5 +137,9 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
     } catch (error) {
         console.error('儲存紅包活動失敗:', error);
         app.showToast('儲存失敗', 'error');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '儲存';
+            }
     }
 });
