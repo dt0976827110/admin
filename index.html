@@ -17,14 +17,17 @@
         <div class="login-container">
             <div class="login-card">
                 <div class="logo">
-                    <div class="logo-icon">🎯</div>
+                    <div class="logo-icon">●</div>
                     <h1>LINE 會員管理</h1>
                 </div>
                 <form id="loginForm">
                     <div class="input-group">
                         <input type="password" id="passwordInput" placeholder="請輸入管理密碼" required>
                     </div>
-                    <button type="submit" class="btn-primary">登入</button>
+                    <button type="submit" class="btn-primary" id="loginBtn">
+                        <span class="btn-text">登入</span>
+                        <span class="btn-loading" style="display: none;">登入中...</span>
+                    </button>
                 </form>
                 <div id="loginError" class="error-message"></div>
             </div>
@@ -77,19 +80,19 @@
                     <h3>⚡ 快捷操作</h3>
                     <div class="quick-actions">
                         <button class="action-btn" onclick="app.navigateTo('members')">
-                            <span class="action-icon">👥</span>
+                            <span class="action-icon">▣</span>
                             <span>會員管理</span>
                         </button>
                         <button class="action-btn" onclick="app.navigateTo('deduction')">
-                            <span class="action-icon">💰</span>
+                            <span class="action-icon">◆</span>
                             <span>今日折抵</span>
                         </button>
                         <button class="action-btn" onclick="app.navigateTo('redpacket')">
-                            <span class="action-icon">🧧</span>
+                            <span class="action-icon">▪</span>
                             <span>紅包活動</span>
                         </button>
                         <button class="action-btn" onclick="app.navigateTo('autoreply')">
-                            <span class="action-icon">💬</span>
+                            <span class="action-icon">◐</span>
                             <span>自動回應</span>
                         </button>
                     </div>
@@ -203,7 +206,7 @@ R8011, 40"></textarea>
                                 <input type="datetime-local" id="eventEnd" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn-primary">💾 儲存設定</button>
+                        <button type="submit" class="btn-primary">儲存設定</button>
                     </form>
                 </div>
 
@@ -248,23 +251,23 @@ R8011, 40"></textarea>
         <!-- 底部導航 -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-page="dashboard" onclick="app.navigateTo('dashboard')">
-                <span class="nav-icon">📊</span>
+                <span class="nav-icon">◫</span>
                 <span class="nav-label">儀表板</span>
             </button>
             <button class="nav-item" data-page="members" onclick="app.navigateTo('members')">
-                <span class="nav-icon">👥</span>
+                <span class="nav-icon">▣</span>
                 <span class="nav-label">會員</span>
             </button>
             <button class="nav-item" data-page="deduction" onclick="app.navigateTo('deduction')">
-                <span class="nav-icon">💰</span>
+                <span class="nav-icon">◆</span>
                 <span class="nav-label">折抵</span>
             </button>
             <button class="nav-item" data-page="redpacket" onclick="app.navigateTo('redpacket')">
-                <span class="nav-icon">🧧</span>
+                <span class="nav-icon">▪</span>
                 <span class="nav-label">紅包</span>
             </button>
             <button class="nav-item" data-page="autoreply" onclick="app.navigateTo('autoreply')">
-                <span class="nav-icon">💬</span>
+                <span class="nav-icon">◐</span>
                 <span class="nav-label">回應</span>
             </button>
         </nav>
@@ -284,13 +287,13 @@ R8011, 40"></textarea>
         </div>
         <div class="modal-content">
             <div class="member-info-compact">
-                <div class="info-line">
+                <div class="info-grid">
                     <span class="info-label">會員 ID</span>
                     <span id="modalMemberId" class="info-value"></span>
                     <span class="info-label">姓名</span>
                     <span id="modalMemberName" class="info-value"></span>
                 </div>
-                <div class="info-line">
+                <div class="info-grid single">
                     <span class="info-label">LINE UID</span>
                     <span id="modalMemberUid" class="info-value copy-text"></span>
                 </div>
@@ -324,12 +327,12 @@ R8011, 40"></textarea>
 
             <div class="form-group">
                 <label>備註</label>
-                <textarea id="modalNote" rows="3"></textarea>
+                <input type="text" id="modalNote" placeholder="輸入備註...">
             </div>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary" onclick="members.closeModal()">取消</button>
-            <button class="btn-success" onclick="members.saveMember()">💾 儲存</button>
+            <button class="btn-success" onclick="members.saveMember()">儲存</button>
         </div>
     </div>
 
@@ -369,7 +372,7 @@ R8011, 40"></textarea>
         <div class="modal-footer">
             <button class="btn-danger" onclick="autoreply.deleteReply()" id="deleteReplyBtn" style="display: none;">🗑️ 刪除</button>
             <button class="btn-secondary" onclick="autoreply.closeModal()">取消</button>
-            <button class="btn-primary" onclick="autoreply.saveReply()">💾 儲存</button>
+            <button class="btn-primary" onclick="autoreply.saveReply()">儲存</button>
         </div>
     </div>
 
