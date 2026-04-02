@@ -745,8 +745,10 @@ body {
 .info-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
+    align-items: center;
+    padding: 12px 0;
     border-bottom: 1px solid var(--border-color);
+    gap: 16px;
 }
 
 .info-row:last-child {
@@ -756,16 +758,24 @@ body {
 .info-row .label {
     font-size: 14px;
     color: var(--text-secondary);
+    flex-shrink: 0;
 }
 
 .info-row .value {
     font-size: 14px;
     font-weight: 500;
+    text-align: right;
+    word-break: break-all;
+    flex-shrink: 0;
+    max-width: 60%;
 }
 
 .copy-text {
     cursor: pointer;
     color: #667eea;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .copy-text:hover {
