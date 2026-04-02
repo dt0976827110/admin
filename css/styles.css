@@ -978,36 +978,34 @@ body {
 }
 
 
-/* ===== 純符號圖示樣式 ===== */
-.logo-icon {
-    font-size: 64px;
-    font-weight: 400;
+/* ===== SVG 線條圖示樣式 ===== */
+.logo-icon svg {
     color: #667eea;
-    font-family: 'Arial', sans-serif;
 }
 
-.stat-icon,
-.action-icon,
-.activity-icon,
-.nav-icon {
-    font-family: 'Arial', sans-serif;
-    font-weight: 400;
-    opacity: 1;
+.stat-icon svg,
+.action-icon svg,
+.activity-icon svg,
+.nav-icon svg {
     color: var(--text-primary);
 }
 
-.stat-icon {
-    font-size: 32px;
+.stat-icon svg {
+    width: 32px;
+    height: 32px;
 }
 
-.action-icon {
-    font-size: 28px;
+.action-icon svg {
+    width: 28px;
+    height: 28px;
 }
 
-.activity-icon {
-    font-size: 20px;
+.activity-icon svg {
+    width: 20px;
+    height: 20px;
 }
 
-.nav-icon {
-    font-size: 20px;
+.nav-icon svg {
+    width: 22px;
+    height: 22px;
 }
