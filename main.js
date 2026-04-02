@@ -1,29 +1,11 @@
 // ========== config.js ==========
-// ===== API 設定 =====
 const CONFIG = {
-    // ⚠️ 請填入你的 GAS Web App URL
     API_URL: 'https://script.google.com/macros/s/AKfycbzj_V9ywaB7S3CBLinOcWOpxB-9-UM7VnWs7e_v5LtnEbAr9OjAzgdmf0yNg8oiwcbU/exec',
-    
-    // ⚠️ 請填入你設定的管理密碼
-    PASSWORD: 'YOUR_PASSWORD_HERE',
-    
-    // Sheet ID (已從你的程式碼中取得)
-    SHEET_ID: '1K_a9KEizA7zBL9F6Y-DkJCa5QfrRuoTKZdUzLvfYnoo',
-    
-    // 本地存儲 key
-    STORAGE_KEY: 'line_member_pwa',
-    PASSWORD_KEY: 'line_member_pwd'
+    PASSWORD_KEY: 'admin_password'
 };
 
-// 範例:
-// API_URL: 'https://script.google.com/macros/s/AKfycbxxx.../exec'
-// PASSWORD: 'my_secure_password_123'
-
-
 // ========== api.js ==========
-// ===== API 通訊模組 =====
 const api = {
-    // 通用請求函數
     async request(action, method = 'GET', data = null) {
         const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
         
@@ -31,19 +13,14 @@ const api = {
             throw new Error('未登入');
         }
         
-        let url = `${CONFIG.API_URL}?action=${action}&password=${password}`;
+        let url = `${{CONFIG.API_URL}}?action=${{action}}&password=${{password}}`;
         
-        // 如果有資料,轉成 JSON 字串並放到 URL 參數
         if (data && method === 'POST') {
-            url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
+            url += `&data=${{encodeURIComponent(JSON.stringify(data))}}`;
         }
         
         try {
-            // ✅ 關鍵: 只用 GET,不加 headers (避免觸發 CORS preflight)
-            const response = await fetch(url, {
-                method: 'GET'
-            });
-            
+            const response = await fetch(url, {{ method: 'GET' }});
             const result = await response.json();
             
             if (result.error === 'Unauthorized') {
@@ -53,68 +30,31 @@ const api = {
             }
             
             return result;
-        } catch (error) {
+        }} catch (error) {{
             console.error('API Error:', error);
             throw error;
-        }
-    },
+        }}
+    }},
     
-    // GET 請求
-    async get(action) {
+    async get(action) {{
         return await this.request(action, 'GET');
-    },
+    }},
     
-    // POST 請求
-    async post(action, data) {
+    async post(action, data) {{
         return await this.request(action, 'POST', data);
-    },
+    }},
     
-    // ===== 儀表板 =====
-    async getDashboard() {
-        return await this.get('getDashboard');
-    },
-    
-    // ===== 會員管理 =====
-    async getMembers() {
-        return await this.get('getMembers');
-    },
-    
-    async updateMember(data) {
-        return await this.post('updateMember', data);
-    },
-    
-    // ===== 紅包活動 =====
-    async getEvent() {
-        return await this.get('getEvent');
-    },
-    
-    async updateEvent(data) {
-        return await this.post('updateEvent', data);
-    },
-    
-    async getRedPacketRecords(limit = 50) {
-        return await this.get(`getRedPacketRecords&limit=${limit}`);
-    },
-    
-    // ===== 自動回應 =====
-    async getAutoReplies() {
-        return await this.get('getAutoReplies');
-    },
-    
-    async saveAutoReply(data) {
-        return await this.post('saveAutoReply', data);
-    },
-    
-    async deleteAutoReply(keyword) {
-        return await this.post('deleteAutoReply', { keyword });
-    },
-    
-    // ===== 今日折抵 =====
-    async processDeduction(deductionList) {
-        return await this.post('processDeduction', deductionList);
-    }
-};
-
+    async getDashboard() {{ return await this.get('getDashboard'); }},
+    async getMembers() {{ return await this.get('getMembers'); }},
+    async updateMember(data) {{ return await this.post('updateMember', data); }},
+    async getEvent() {{ return await this.get('getEvent'); }},
+    async updateEvent(data) {{ return await this.post('updateEvent', data); }},
+    async getRedPacketRecords(limit = 50) {{ return await this.get(`getRedPacketRecords&limit=${{limit}}`); }},
+    async getAutoReplies() {{ return await this.get('getAutoReplies'); }},
+    async saveAutoReply(data) {{ return await this.post('saveAutoReply', data); }},
+    async deleteAutoReply(keyword) {{ return await this.post('deleteAutoReply', {{ keyword }}); }},
+    async processDeduction(deductionList) {{ return await this.post('processDeduction', deductionList); }}
+}};
 
 // ========== app.js ==========
 // ===== 主應用程式 =====
