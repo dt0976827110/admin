@@ -13,14 +13,14 @@ const api = {
             throw new Error('未登入');
         }
         
-        let url = `${{CONFIG.API_URL}}?action=${{action}}&password=${{password}}`;
+        let url = `${CONFIG.API_URL}?action=${action}&password=${password}`;
         
         if (data && method === 'POST') {
-            url += `&data=${{encodeURIComponent(JSON.stringify(data))}}`;
+            url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
         }
         
         try {
-            const response = await fetch(url, {{ method: 'GET' }});
+            const response = await fetch(url, {{ method: 'GET' });
             const result = await response.json();
             
             if (result.error === 'Unauthorized') {
@@ -30,31 +30,31 @@ const api = {
             }
             
             return result;
-        }} catch (error) {{
+        } catch (error) {{
             console.error('API Error:', error);
             throw error;
-        }}
-    }},
+        }
+    },
     
     async get(action) {{
         return await this.request(action, 'GET');
-    }},
+    },
     
     async post(action, data) {{
         return await this.request(action, 'POST', data);
-    }},
+    },
     
-    async getDashboard() {{ return await this.get('getDashboard'); }},
-    async getMembers() {{ return await this.get('getMembers'); }},
-    async updateMember(data) {{ return await this.post('updateMember', data); }},
-    async getEvent() {{ return await this.get('getEvent'); }},
-    async updateEvent(data) {{ return await this.post('updateEvent', data); }},
-    async getRedPacketRecords(limit = 50) {{ return await this.get(`getRedPacketRecords&limit=${{limit}}`); }},
-    async getAutoReplies() {{ return await this.get('getAutoReplies'); }},
-    async saveAutoReply(data) {{ return await this.post('saveAutoReply', data); }},
-    async deleteAutoReply(keyword) {{ return await this.post('deleteAutoReply', {{ keyword }}); }},
-    async processDeduction(deductionList) {{ return await this.post('processDeduction', deductionList); }}
-}};
+    async getDashboard() {{ return await this.get('getDashboard'); },
+    async getMembers() {{ return await this.get('getMembers'); },
+    async updateMember(data) {{ return await this.post('updateMember', data); },
+    async getEvent() {{ return await this.get('getEvent'); },
+    async updateEvent(data) {{ return await this.post('updateEvent', data); },
+    async getRedPacketRecords(limit = 50) {{ return await this.get(`getRedPacketRecords&limit=${limit}`); },
+    async getAutoReplies() {{ return await this.get('getAutoReplies'); },
+    async saveAutoReply(data) {{ return await this.post('saveAutoReply', data); },
+    async deleteAutoReply(keyword) {{ return await this.post('deleteAutoReply', {{ keyword }); },
+    async processDeduction(deductionList) {{ return await this.post('processDeduction', deductionList); }
+};
 
 // ========== app.js ==========
 // ===== 主應用程式 =====
