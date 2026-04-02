@@ -59,7 +59,14 @@ const autoreply = {
                 endTime: reply.endTime
             };
             
-            const result = await api.saveAutoReply(data);
+            // ✅ 防呆
+        const saveBtn = document.querySelector('#replyModal .btn-success');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.textContent = '儲存中...';
+        }
+        
+        const result = await api.saveAutoReply(data);
             
             if (result.success) {
                 reply.status = newStatus;
@@ -156,7 +163,14 @@ const autoreply = {
                 endTime: endTime || null
             };
             
-            const result = await api.saveAutoReply(data);
+            // ✅ 防呆
+        const saveBtn = document.querySelector('#replyModal .btn-success');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.textContent = '儲存中...';
+        }
+        
+        const result = await api.saveAutoReply(data);
             
             if (result.success) {
                 app.showToast('儲存成功', 'success');
@@ -168,6 +182,10 @@ const autoreply = {
         } catch (error) {
             console.error('儲存自動回應失敗:', error);
             app.showToast('儲存失敗', 'error');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '儲存';
+            }
         }
     },
     
