@@ -4,14 +4,8 @@ const app = {
     
     // 初始化
     init() {
-        // 檢查登入狀態
-        const password = localStorage.getItem(CONFIG.PASSWORD_KEY);
-        if (password) {
-            this.showApp();
-            this.navigateTo('dashboard');
-        } else {
-            this.showLogin();
-        }
+        // ✅ 永遠顯示登入頁面 (不自動登入)
+        this.showLogin();
         
         // 登入表單事件
         document.getElementById('loginForm').addEventListener('submit', (e) => {
@@ -30,8 +24,13 @@ const app = {
         const password = document.getElementById('passwordInput').value;
         const errorEl = document.getElementById('loginError');
         
-        // 暫存密碼
-        localStorage.setItem(CONFIG.PASSWORD_KEY, password);
+        if (!password) {
+            errorEl.textContent = '請輸入密碼';
+            return;
+        }
+        
+        // ✅ 暫存密碼到 sessionStorage (關閉瀏覽器就清除)
+        sessionStorage.setItem(CONFIG.PASSWORD_KEY, password);
         
         try {
             // 測試 API 連線
@@ -46,7 +45,7 @@ const app = {
                 throw new Error('登入失敗');
             }
         } catch (error) {
-            localStorage.removeItem(CONFIG.PASSWORD_KEY);
+            sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
             errorEl.textContent = '密碼錯誤或無法連接伺服器';
             this.showToast('登入失敗', 'error');
         }
@@ -55,7 +54,7 @@ const app = {
     // 登出
     logout() {
         if (confirm('確定要登出嗎?')) {
-            localStorage.removeItem(CONFIG.PASSWORD_KEY);
+            sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
             this.showLogin();
             this.showToast('已登出', 'info');
         }

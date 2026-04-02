@@ -2,7 +2,8 @@
 const api = {
     // 通用請求函數
     async request(action, method = 'GET', data = null) {
-        const password = localStorage.getItem(CONFIG.PASSWORD_KEY);
+        // ✅ 從 sessionStorage 讀取密碼 (不是 localStorage)
+        const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
         
         if (!password) {
             throw new Error('未登入');
@@ -26,7 +27,7 @@ const api = {
             const result = await response.json();
             
             if (result.error === 'Unauthorized') {
-                localStorage.removeItem(CONFIG.PASSWORD_KEY);
+                sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
                 app.logout();
                 throw new Error('認證失敗,請重新登入');
             }
