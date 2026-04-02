@@ -5,7 +5,7 @@ const CONFIG = {
     API_URL: 'https://script.google.com/macros/s/AKfycbzj_V9ywaB7S3CBLinOcWOpxB-9-UM7VnWs7e_v5LtnEbAr9OjAzgdmf0yNg8oiwcbU/exec',
     
     // ⚠️ 請填入你設定的管理密碼
-    PASSWORD: 'aa8888',
+    PASSWORD: 'YOUR_PASSWORD_HERE',
     
     // Sheet ID (已從你的程式碼中取得)
     SHEET_ID: '1K_a9KEizA7zBL9F6Y-DkJCa5QfrRuoTKZdUzLvfYnoo',
@@ -189,8 +189,17 @@ const app = {
     
     // 顯示應用程式
     showApp() {
-        document.getElementById('loginPage').classList.remove('active');
-        document.getElementById('appContainer').style.display = 'block';
+        const loginPage = document.getElementById('loginPage');
+        const appContainer = document.getElementById('appContainer');
+        
+        if (loginPage) {
+            loginPage.classList.remove('active');
+            loginPage.style.display = 'none';
+        }
+        
+        if (appContainer) {
+            appContainer.style.display = 'block';
+        }
     },
     
     // 頁面導航
