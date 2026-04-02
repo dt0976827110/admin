@@ -227,21 +227,26 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-hover);
-    border: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
-    color: var(--text-secondary);
+    color: var(--text-primary);
+    transition: all 0.2s;
 }
 
 .btn-icon:hover {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border-color: var(--border-default);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+}
+
+.btn-icon:active {
+    transform: translateY(0);
 }
 
 .btn-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
 }
 
 /* ===== 頁面標題 ===== */
@@ -515,7 +520,7 @@ button {
 
 /* 表單樣式 */
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .form-group label {
@@ -523,7 +528,7 @@ button {
     font-size: 13px;
     font-weight: 500;
     color: var(--text-secondary);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .form-group input,
@@ -590,11 +595,15 @@ button {
 
 /* 自訂金額輸入框 - 加大上方間距 */
 .btn-group + .input-group {
-    margin-top: 16px;
+    margin-top: 20px;
 }
 
-.input-group input[type="number"] {
-    margin-top: 8px;
+.modal-body .input-group {
+    margin-bottom: 16px;
+}
+
+.modal-body label {
+    margin-bottom: 10px;
 }
 
 /* Modal 底部按鈕 */
