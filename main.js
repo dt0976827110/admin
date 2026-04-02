@@ -6,7 +6,7 @@ const CONFIG = {
     API_URL: 'https://script.google.com/macros/s/AKfycbzj_V9ywaB7S3CBLinOcWOpxB-9-UM7VnWs7e_v5LtnEbAr9OjAzgdmf0yNg8oiwcbU/exec',
     
     // ⚠️ 請填入你設定的管理密碼
-    PASSWORD: 'YOUR_PASSWORD_HERE',
+    PASSWORD: 'aa8888',
     
     // Sheet ID (已從你的程式碼中取得)
     SHEET_ID: '1K_a9KEizA7zBL9F6Y-DkJCa5QfrRuoTKZdUzLvfYnoo',
