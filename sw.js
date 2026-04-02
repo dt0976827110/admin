@@ -1,17 +1,17 @@
 // Service Worker for PWA
 const CACHE_NAME = 'line-member-pwa-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/js/config.js',
-  '/js/api.js',
-  '/js/app.js',
-  '/js/dashboard.js',
-  '/js/members.js',
-  '/js/deduction.js',
-  '/js/redpacket.js',
-  '/js/autoreply.js'
+  '/admin/',
+  '/admin/index.html',
+  '/admin/css/styles.css',
+  '/admin/js/config.js',
+  '/admin/js/api.js',
+  '/admin/js/app.js',
+  '/admin/js/dashboard.js',
+  '/admin/js/members.js',
+  '/admin/js/deduction.js',
+  '/admin/js/redpacket.js',
+  '/admin/js/autoreply.js'
 ];
 
 // 安裝 Service Worker
@@ -19,6 +19,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
+      .catch(err => console.log('Cache install error:', err))
   );
 });
 
@@ -72,6 +73,9 @@ self.addEventListener('fetch', event => {
           
           return response;
         });
+      })
+      .catch(err => {
+        console.log('Fetch error:', err);
       })
   );
 });
