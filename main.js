@@ -63,6 +63,8 @@ const app = {
     
     // 初始化
     init() {
+        console.log('App init called');
+        
         // 檢查登入狀態
         const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
         if (password) {
@@ -73,15 +75,25 @@ const app = {
         }
         
         // 登入表單事件
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.login();
-        });
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            console.log('Login form found, adding event listener');
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('Form submitted, calling login');
+                this.login();
+            });
+        } else {
+            console.error('Login form not found!');
+        }
         
         // 會員搜尋事件
-        document.getElementById('memberSearch').addEventListener('input', (e) => {
-            members.search(e.target.value);
-        });
+        const memberSearch = document.getElementById('memberSearch');
+        if (memberSearch) {
+            memberSearch.addEventListener('input', (e) => {
+                members.search(e.target.value);
+            });
+        }
     },
     
     // 登入
