@@ -1,81 +1,45 @@
-// Service Worker for PWA
-const CACHE_NAME = 'line-member-pwa-v1';
-const urlsToCache = [
-  '/admin/',
-  '/admin/index.html',
-  '/admin/css/styles.css',
-  '/admin/js/config.js',
-  '/admin/js/api.js',
-  '/admin/js/app.js',
-  '/admin/js/dashboard.js',
-  '/admin/js/members.js',
-  '/admin/js/deduction.js',
-  '/admin/js/redpacket.js',
-  '/admin/js/autoreply.js'
-];
+// Service Worker - 自動更新版 (Network First)
+const CACHE_NAME = 'line-member-pwa';
 
-// 安裝 Service Worker
+// 安裝時不預先快取任何東西
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-      .catch(err => console.log('Cache install error:', err))
-  );
+  console.log('[SW] Installing...');
+  self.skipWaiting();
 });
 
-// 啟用 Service Worker
+// 啟用時立即接管
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
+  console.log('[SW] Activating...');
+  event.waitUntil(clients.claim());
 });
 
-// 攔截請求
+// Network First 策略 - 永遠先從網路載入
 self.addEventListener('fetch', event => {
-  // 只快取 GET 請求
+  // 只處理 GET 請求
   if (event.request.method !== 'GET') {
     return;
   }
   
-  // 不快取 API 請求
+  // API 請求直接放行,不快取
   if (event.request.url.includes('script.google.com')) {
     return;
   }
   
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        // 快取命中,返回快取
-        if (response) {
-          return response;
-        }
-        
-        // 未命中,發起網路請求
-        return fetch(event.request).then(response => {
-          // 檢查是否為有效回應
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-          
-          // 克隆回應並加入快取
+        // 成功從網路載入,儲存到快取作為備份
+        if (response && response.status === 200) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then(cache => {
             cache.put(event.request, responseToCache);
           });
-          
-          return response;
-        });
+        }
+        return response;
       })
-      .catch(err => {
-        console.log('Fetch error:', err);
+      .catch(() => {
+        // 網路失敗時才用快取
+        return caches.match(event.request);
       })
   );
 });
