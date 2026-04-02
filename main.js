@@ -870,7 +870,10 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
         
         if (result.success) {
             app.showToast('儲存成功', 'success');
-                if (saveBtn) { saveBtn.classList.remove('loading'); saveBtn.disabled = false; }
+            if (saveBtn) {
+                saveBtn.classList.remove('loading');
+                saveBtn.disabled = false;
+            }
             redpacket.currentEvent = data;
             await redpacket.load();
         } else {
@@ -1055,6 +1058,10 @@ const autoreply = {
         } catch (error) {
             console.error('儲存自動回應失敗:', error);
             app.showToast('儲存失敗', 'error');
+            if (saveBtn) {
+                saveBtn.classList.remove('loading');
+                saveBtn.disabled = false;
+            }
         }
     },
     
