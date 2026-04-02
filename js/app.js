@@ -29,11 +29,17 @@ const app = {
     async login() {
         const password = document.getElementById('passwordInput').value;
         const errorEl = document.getElementById('loginError');
+        const loginBtn = document.getElementById('loginBtn');
         
         if (!password) {
             errorEl.textContent = '請輸入密碼';
             return;
         }
+        
+        // ✅ 顯示 loading 狀態
+        loginBtn.classList.add('loading');
+        loginBtn.disabled = true;
+        errorEl.textContent = '';
         
         // ✅ 暫存密碼到 sessionStorage (關閉瀏覽器就清除)
         sessionStorage.setItem(CONFIG.PASSWORD_KEY, password);
@@ -43,7 +49,6 @@ const app = {
             const result = await api.getDashboard();
             
             if (result.success) {
-                errorEl.textContent = '';
                 this.showApp();
                 this.navigateTo('dashboard');
                 this.showToast('登入成功', 'success');
@@ -55,6 +60,10 @@ const app = {
             sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
             errorEl.textContent = '密碼錯誤或無法連接伺服器';
             this.showToast('登入失敗', 'error');
+            
+            // ✅ 移除 loading 狀態
+            loginBtn.classList.remove('loading');
+            loginBtn.disabled = false;
         }
     },
     
