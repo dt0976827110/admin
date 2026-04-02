@@ -340,7 +340,7 @@ const dashboard = {
             if (result.success && result.data.length > 0) {
                 container.innerHTML = result.data.map(record => `
                     <div class="activity-item">
-                        <div class="activity-icon">🧧</div>
+                        <div class="activity-icon"></div>
                         <div class="activity-info">
                             <div class="activity-title">${record.name} 領取 ${record.eventName}</div>
                             <div class="activity-time">${app.formatRelativeTime(record.time)}</div>
@@ -512,6 +512,7 @@ const members = {
             
             if (result.success) {
                 app.showToast('儲存成功', 'success');
+                if (saveBtn) { saveBtn.classList.remove('loading'); saveBtn.disabled = false; }
                 this.closeModal();
                 
                 // 更新本地資料
@@ -869,6 +870,7 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
         
         if (result.success) {
             app.showToast('儲存成功', 'success');
+                if (saveBtn) { saveBtn.classList.remove('loading'); saveBtn.disabled = false; }
             redpacket.currentEvent = data;
             await redpacket.load();
         } else {
@@ -1044,6 +1046,7 @@ const autoreply = {
             
             if (result.success) {
                 app.showToast('儲存成功', 'success');
+                if (saveBtn) { saveBtn.classList.remove('loading'); saveBtn.disabled = false; }
                 this.closeModal();
                 await this.load();
             } else {

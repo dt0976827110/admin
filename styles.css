@@ -1006,3 +1006,34 @@ body {
 #loginBtn.loading::after {
     content: '中...';
 }
+
+
+/* 自訂金額輸入框間距 */
+.modal .input-group {
+    margin-top: 20px;
+}
+
+.modal .input-group input[type="number"] {
+    margin-top: 8px;
+}
+
+/* 按鈕只顯示文字,不顯示圖示 */
+.btn-primary svg,
+.btn-danger svg,
+.btn-secondary svg {
+    display: none !important;
+}
+
+/* 按鈕防呆 - loading 狀態 */
+.btn-primary.loading,
+.btn-danger.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.btn-primary.loading::after,
+.btn-danger.loading::after {
+    content: '處理中...';
+    margin-left: 8px;
+}

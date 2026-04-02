@@ -36,35 +36,35 @@
         <!-- 儀表板頁面 -->
         <div id="dashboardPage" class="page">
             <div class="page-header">
-                <h2>📊 儀表板</h2>
-                <button class="btn-icon" onclick="app.logout()">🚪</button>
+                <h2>儀表板</h2>
+                <button class="btn-icon" onclick="app.logout()">登出</button>
             </div>
             <div class="page-content">
                 <!-- 統計卡片 -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">👥</div>
+                        <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
                         <div class="stat-info">
                             <div class="stat-label">會員總數</div>
                             <div class="stat-value" id="totalMembers">-</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">💰</div>
+                        <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
                         <div class="stat-info">
                             <div class="stat-label">折扣金總額</div>
                             <div class="stat-value" id="totalBalance">-</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">🧧</div>
+                        <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/></svg></div>
                         <div class="stat-info">
                             <div class="stat-label">今日紅包</div>
                             <div class="stat-value" id="todayRedPackets">-</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">💬</div>
+                        <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
                         <div class="stat-info">
                             <div class="stat-label">自動回應</div>
                             <div class="stat-value" id="autoReplyCount">-</div>
@@ -97,7 +97,7 @@
 
                 <!-- 近期動態 -->
                 <div class="section">
-                    <h3>📈 近期動態</h3>
+                    <h3>近期動態</h3>
                     <div id="recentActivity" class="activity-list">
                         <div class="loading">載入中...</div>
                     </div>
@@ -108,13 +108,13 @@
         <!-- 會員管理頁面 -->
         <div id="membersPage" class="page">
             <div class="page-header">
-                <h2>👥 會員管理</h2>
-                <button class="btn-icon" onclick="members.refresh()">🔄</button>
+                <h2>會員管理</h2>
+                <button class="btn-icon" onclick="members.refresh()">重新整理</button>
             </div>
             <div class="page-content">
                 <!-- 搜尋列 -->
                 <div class="search-bar">
-                    <input type="text" id="memberSearch" placeholder="🔍 搜尋會員 ID、姓名、LINE UID...">
+                    <input type="text" id="memberSearch" placeholder="搜尋會員 ID、姓名、LINE UID...">
                 </div>
 
                 <!-- 會員列表 -->
@@ -127,11 +127,11 @@
         <!-- 今日折抵頁面 -->
         <div id="deductionPage" class="page">
             <div class="page-header">
-                <h2>💰 今日折抵</h2>
+                <h2>今日折抵</h2>
             </div>
             <div class="page-content">
                 <div class="section">
-                    <h3>📝 貼上今日折抵資料</h3>
+                    <h3>貼上今日折抵資料</h3>
                     <p class="hint">從 Excel 複製貼上,支援 Tab、逗號、空格分隔</p>
                     <textarea id="deductionInput" placeholder="範例格式:
 R8008  6440
@@ -141,22 +141,22 @@ R8017  20
 或:
 R8008, 6440
 R8011, 40"></textarea>
-                    <button class="btn-primary" onclick="deduction.parseData()">📊 解析資料</button>
+                    <button class="btn-primary" onclick="deduction.parseData()">解析資料</button>
                 </div>
 
                 <!-- 預覽區 -->
                 <div id="deductionPreview" class="section" style="display: none;">
-                    <h3>👀 預覽與確認</h3>
+                    <h3>預覽與確認</h3>
                     <div id="previewTable"></div>
                     <div class="action-buttons">
-                        <button class="btn-success" onclick="deduction.execute()">✅ 執行折抵</button>
-                        <button class="btn-secondary" onclick="deduction.clearPreview()">❌ 清除</button>
+                        <button class="btn-success" onclick="deduction.execute()">執行折抵</button>
+                        <button class="btn-secondary" onclick="deduction.clearPreview()">清除</button>
                     </div>
                 </div>
 
                 <!-- 執行結果 -->
                 <div id="deductionResult" class="section" style="display: none;">
-                    <h3>📊 執行結果</h3>
+                    <h3>執行結果</h3>
                     <div id="resultTable"></div>
                 </div>
             </div>
@@ -165,13 +165,13 @@ R8011, 40"></textarea>
         <!-- 紅包活動頁面 -->
         <div id="redpacketPage" class="page">
             <div class="page-header">
-                <h2>🧧 紅包活動</h2>
-                <button class="btn-icon" onclick="redpacket.refresh()">🔄</button>
+                <h2>紅包活動</h2>
+                <button class="btn-icon" onclick="redpacket.refresh()">重新整理</button>
             </div>
             <div class="page-content">
                 <!-- 活動設定 -->
                 <div class="section">
-                    <h3>🎁 活動設定</h3>
+                    <h3>活動設定</h3>
                     <form id="eventForm">
                         <div class="form-group">
                             <label>活動名稱</label>
@@ -203,7 +203,7 @@ R8011, 40"></textarea>
                                 <input type="datetime-local" id="eventEnd" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn-primary">💾 儲存設定</button>
+                        <button type="submit" class="btn-primary">儲存設定</button>
                     </form>
                 </div>
 
@@ -235,8 +235,8 @@ R8011, 40"></textarea>
         <!-- 自動回應頁面 -->
         <div id="autoreplyPage" class="page">
             <div class="page-header">
-                <h2>💬 自動回應</h2>
-                <button class="btn-icon" onclick="autoreply.showAddModal()">➕</button>
+                <h2>自動回應</h2>
+                <button class="btn-icon" onclick="autoreply.showAddModal()">新增</button>
             </div>
             <div class="page-content">
                 <div id="autoReplyList" class="reply-list">
@@ -280,7 +280,7 @@ R8011, 40"></textarea>
     <div id="memberModal" class="modal">
         <div class="modal-header">
             <h3>編輯會員</h3>
-            <button class="btn-close" onclick="members.closeModal()">✕</button>
+            <button class="btn-close" onclick="members.closeModal()">×</button>
         </div>
         <div class="modal-content">
             <div class="member-info-grid">
@@ -325,7 +325,7 @@ R8011, 40"></textarea>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary" onclick="members.closeModal()">取消</button>
-            <button class="btn-primary" onclick="members.saveMember()">💾 儲存</button>
+            <button class="btn-primary" onclick="members.saveMember()">儲存</button>
         </div>
     </div>
 
@@ -363,9 +363,9 @@ R8011, 40"></textarea>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-danger" onclick="autoreply.deleteReply()" id="deleteReplyBtn" style="display: none;">🗑️ 刪除</button>
+            <button class="btn-danger" onclick="autoreply.deleteReply()" id="deleteReplyBtn" style="display: none;">刪除</button>
             <button class="btn-secondary" onclick="autoreply.closeModal()">取消</button>
-            <button class="btn-primary" onclick="autoreply.saveReply()">💾 儲存</button>
+            <button class="btn-primary" onclick="autoreply.saveReply()">儲存</button>
         </div>
     </div>
 
