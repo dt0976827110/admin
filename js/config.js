@@ -1,7 +1,7 @@
 // ===== API 設定 =====
 const CONFIG = {
     // ⚠️ 請填入你的 GAS Web App URL
-    API_URL: 'YOUR_GAS_WEB_APP_URL_HERE',
+    API_URL: 'https://script.google.com/macros/s/AKfycbzj_V9ywaB7S3CBLinOcWOpxB-9-UM7VnWs7e_v5LtnEbAr9OjAzgdmf0yNg8oiwcbU/exec',
     
     // ✅ 密碼留空!改為每次登入時手動輸入
     PASSWORD: '',
