@@ -328,27 +328,23 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
 }
-.form-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 8px;
-}
-
-/* datetime-local 縮小字體讓原生控件在窄欄內顯示完整 */
+/* datetime-local 高度與一般 input 一致 */
 input[type="datetime-local"] {
     width: 100%;
-    min-width: 0;
+    padding: 11px 14px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
     box-sizing: border-box;
-    font-size: 11.5px !important;
-    padding: 9px 5px !important;
-    letter-spacing: -0.02em;
 }
 
-/* 當視窗非常窄時（modal 在手機上約 340px 以下）改為單欄 */
-@media (max-width: 400px) {
-    .form-row {
-        grid-template-columns: 1fr;
-    }
+input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 /* 會員餘額調整 */

@@ -1008,7 +1008,8 @@ const autoreply = {
     async toggleStatus(index) {
         const reply = this.replies[index];
         const newStatus = reply.status === '啟用' ? '停用' : '啟用';
-        
+
+        app.showLoading(`切換為${newStatus}...`);
         try {
             const data = {
                 keyword: reply.keyword,
@@ -1017,17 +1018,21 @@ const autoreply = {
                 startTime: reply.startTime,
                 endTime: reply.endTime
             };
-            
+
             const result = await api.saveAutoReply(data);
-            
+
             if (result.success) {
                 reply.status = newStatus;
                 this.render();
                 app.showToast(`已${newStatus}`, 'success');
+            } else {
+                app.showToast('操作失敗', 'error');
             }
         } catch (error) {
             console.error('切換狀態失敗:', error);
             app.showToast('操作失敗', 'error');
+        } finally {
+            app.hideLoading();
         }
     },
     
