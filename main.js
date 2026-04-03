@@ -547,8 +547,7 @@ const members = {
         if (statusChanged) confirmLines.push(`狀態：${this.currentMember.status} → ${status}`);
         if (noteChanged)   confirmLines.push(`備註：已修改`);
 
-        if (!confirm(confirmLines.join('
-'))) return;
+        if (!confirm(confirmLines.join('\n'))) return;
 
         app.showLoading('儲存中...');
         try {
