@@ -49,7 +49,12 @@ const api = {
     async updateMember(data) { return await this.post('updateMember', data); },
     async getEvent() { return await this.get('getEvent'); },
     async updateEvent(data) { return await this.post('updateEvent', data); },
-    async getRedPacketRecords(limit = 50) { return await this.get(`getRedPacketRecords&limit=${limit}`); },
+    async getRedPacketRecords(limit = 50) {
+        const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
+        const url = `${CONFIG.API_URL}?action=getRedPacketRecords&limit=${limit}&password=${password}`;
+        const response = await fetch(url, { method: 'GET' });
+        return await response.json();
+    },
     async getAutoReplies() { return await this.get('getAutoReplies'); },
     async saveAutoReply(data) { return await this.post('saveAutoReply', data); },
     async deleteAutoReply(keyword) { return await this.post('deleteAutoReply', { keyword }); },
@@ -134,8 +139,11 @@ const app = {
     
     // 顯示登入頁
     showLogin() {
-        document.getElementById('loginPage').classList.add('active');
-        document.getElementById('appContainer').style.display = 'none';
+        const loginPage = document.getElementById('loginPage');
+        const appContainer = document.getElementById('appContainer');
+        loginPage.style.removeProperty('display');   // 清除 inline style
+        loginPage.classList.add('active');
+        appContainer.style.display = 'none';
         document.getElementById('passwordInput').value = '';
     },
     
@@ -143,15 +151,9 @@ const app = {
     showApp() {
         const loginPage = document.getElementById('loginPage');
         const appContainer = document.getElementById('appContainer');
-        
-        if (loginPage) {
-            loginPage.classList.remove('active');
-            loginPage.style.display = 'none';
-        }
-        
-        if (appContainer) {
-            appContainer.style.display = 'block';
-        }
+        loginPage.classList.remove('active');
+        loginPage.style.display = 'none';
+        appContainer.style.display = 'block';
     },
     
     // 頁面導航
@@ -199,24 +201,30 @@ const app = {
     showToast(message, type = 'info') {
         const toast = document.getElementById('toast');
         toast.textContent = message;
-        toast.className = `toast ${type} show`;
-        
-        setTimeout(() => {
+        toast.className = `toast ${type}`;
+        // 觸發 reflow 讓 transition 生效
+        toast.offsetHeight;
+        toast.classList.add('show');
+        clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => {
             toast.classList.remove('show');
         }, 3000);
     },
     
     // 顯示 Modal
     showModal(modalId) {
-        document.getElementById('modalOverlay').classList.add('active');
-        document.getElementById(modalId).classList.add('active');
+        const overlay = document.getElementById('modalOverlay');
+        // 隱藏所有 modal，只顯示指定的
+        overlay.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = '';
+        overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
     },
     
     // 隱藏 Modal
     hideModal(modalId) {
         document.getElementById('modalOverlay').classList.remove('active');
-        document.getElementById(modalId).classList.remove('active');
         document.body.style.overflow = '';
     },
     
@@ -340,7 +348,7 @@ const dashboard = {
             if (result.success && result.data.length > 0) {
                 container.innerHTML = result.data.map(record => `
                     <div class="activity-item">
-                        <div class="activity-icon"></div>
+                        <div class="activity-icon">🧧</div>
                         <div class="activity-info">
                             <div class="activity-title">${record.name} 領取 ${record.eventName}</div>
                             <div class="activity-time">${app.formatRelativeTime(record.time)}</div>
@@ -512,7 +520,6 @@ const members = {
             
             if (result.success) {
                 app.showToast('儲存成功', 'success');
-                if (saveBtn) { saveBtn.classList.remove('loading'); saveBtn.disabled = false; }
                 this.closeModal();
                 
                 // 更新本地資料
@@ -692,6 +699,9 @@ const deduction = {
             if (result.success) {
                 this.showResult(result.results);
                 app.showToast('執行成功', 'success');
+                // 清除會員快取，確保下次進會員頁看到最新餘額
+                members.allMembers = [];
+                members.filteredMembers = [];
             } else {
                 app.showToast(result.error || '執行失敗', 'error');
             }
@@ -870,10 +880,6 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
         
         if (result.success) {
             app.showToast('儲存成功', 'success');
-            if (saveBtn) {
-                saveBtn.classList.remove('loading');
-                saveBtn.disabled = false;
-            }
             redpacket.currentEvent = data;
             await redpacket.load();
         } else {
@@ -1049,7 +1055,6 @@ const autoreply = {
             
             if (result.success) {
                 app.showToast('儲存成功', 'success');
-                if (saveBtn) { saveBtn.classList.remove('loading'); saveBtn.disabled = false; }
                 this.closeModal();
                 await this.load();
             } else {

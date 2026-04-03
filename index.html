@@ -13,7 +13,7 @@
 </head>
 <body>
     <!-- 登入頁面 -->
-    <div id="loginPage" class="page active">
+    <div id="loginPage" class="active">
         <div class="login-container">
             <div class="login-card">
                 <div class="logo">
@@ -32,7 +32,7 @@
     </div>
 
     <!-- 主要應用 -->
-    <div id="appContainer" class="app-container">
+    <div id="appContainer" class="app-container" style="display:none;">
         <!-- 儀表板頁面 -->
         <div id="dashboardPage" class="page">
             <div class="page-header">
@@ -273,8 +273,8 @@ R8011, 40"></textarea>
     <!-- Toast 通知 -->
     <div id="toast" class="toast"></div>
 
-    <!-- Modal 遮罩 -->
-    <div id="modalOverlay" class="modal-overlay"></div>
+    <!-- Modal 遮罩 + 彈窗容器 -->
+    <div id="modalOverlay" class="modal-overlay">
 
     <!-- 會員編輯 Modal -->
     <div id="memberModal" class="modal">
@@ -289,9 +289,8 @@ R8011, 40"></textarea>
                 <span class="info-label">姓名</span>
                 <span id="modalMemberName" class="info-value"></span>
                 <span class="info-label">LINE UID</span>
-                <span id="modalMemberUid" class="info-value copy-text" style="grid-column: 2 / 5;"></span>
+                <span id="modalMemberUid" class="info-value copy-text"></span>
             </div>
-
             <div class="form-group">
                 <label>折扣金餘額</label>
                 <div class="balance-adjust">
@@ -309,7 +308,6 @@ R8011, 40"></textarea>
                     <button onclick="members.applyCustomAdjust()">套用</button>
                 </div>
             </div>
-
             <div class="form-group">
                 <label>狀態</label>
                 <select id="modalStatus">
@@ -317,7 +315,6 @@ R8011, 40"></textarea>
                     <option value="停用">停用</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>備註</label>
                 <input type="text" id="modalNote" placeholder="輸入備註...">
@@ -342,7 +339,7 @@ R8011, 40"></textarea>
             </div>
             <div class="form-group">
                 <label>回覆內容</label>
-                <textarea id="replyContent" rows="8"></textarea>
+                <textarea id="replyContent" rows="6"></textarea>
             </div>
             <div class="form-group">
                 <label>狀態</label>
@@ -363,11 +360,13 @@ R8011, 40"></textarea>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-danger" onclick="autoreply.deleteReply()" id="deleteReplyBtn" style="display: none;">刪除</button>
+            <button class="btn-danger" onclick="autoreply.deleteReply()" id="deleteReplyBtn" style="display:none;">刪除</button>
             <button class="btn-secondary" onclick="autoreply.closeModal()">取消</button>
             <button class="btn-primary" onclick="autoreply.saveReply()">儲存</button>
         </div>
     </div>
+
+    </div><!-- /modalOverlay -->
 
     <script src="main.js"></script>
 </body>
