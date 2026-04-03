@@ -125,8 +125,9 @@ const app = {
     },
     
     // 登出
-    logout() {
-        if (confirm('確定要登出嗎?')) {
+    async logout() {
+        const ok = await app.confirm('確定要登出嗎？');
+        if (ok) {
             _sessionPassword = null;
             this.showLogin();
             this.showToast('已登出', 'info');
@@ -224,6 +225,32 @@ const app = {
     hideLoading() {
         const el = document.getElementById('globalLoading');
         if (el) el.classList.remove('active');
+    },
+
+    // 自訂確認視窗（取代原生 confirm）
+    confirm(message) {
+        return new Promise((resolve) => {
+            const dialog  = document.getElementById('confirmDialog');
+            const msgEl   = document.getElementById('confirmMessage');
+            const okBtn   = document.getElementById('confirmOk');
+            const cancelBtn = document.getElementById('confirmCancel');
+
+            msgEl.textContent = message;
+            dialog.classList.add('active');
+
+            const cleanup = (result) => {
+                dialog.classList.remove('active');
+                okBtn.removeEventListener('click', onOk);
+                cancelBtn.removeEventListener('click', onCancel);
+                resolve(result);
+            };
+
+            const onOk     = () => cleanup(true);
+            const onCancel = () => cleanup(false);
+
+            okBtn.addEventListener('click', onOk);
+            cancelBtn.addEventListener('click', onCancel);
+        });
     },
 
     // 顯示 Modal
@@ -537,7 +564,7 @@ const members = {
         if (statusChanged) confirmLines.push(`狀態：${this.currentMember.status} → ${status}`);
         if (noteChanged)   confirmLines.push(`備註：已修改`);
 
-        if (!confirm(confirmLines.join('\n'))) return;
+        if (!(await app.confirm(confirmLines.join('\n')))) return;
 
         app.showLoading('儲存中...');
         try {
@@ -710,7 +737,7 @@ const deduction = {
                           `共 ${this.parsedData.length} 筆\n` +
                           `總扣抵金額: ${app.formatCurrency(totalAmount)}`;
 
-        if (!confirm(confirmMsg)) return;
+        if (!(await app.confirm(confirmMsg))) return;
 
         const execBtn = document.querySelector('#deductionPreview .btn-success');
         if (execBtn) { execBtn.disabled = true; execBtn.textContent = '執行中...'; }
@@ -904,7 +931,7 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
         return;
     }
 
-    if (!confirm(`確定要儲存紅包活動「${data.name}」的設定嗎?`)) return;
+    if (!(await app.confirm(`確定要儲存紅包活動「${data.name}」的設定嗎？`))) return;
 
     const saveBtn = e.submitter || document.querySelector('#eventForm .btn-primary');
     if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '儲存中...'; }
@@ -1119,8 +1146,8 @@ const autoreply = {
     async deleteReply() {
         if (!this.currentReply) return;
 
-        if (!confirm(`確定要刪除「${this.currentReply.keyword}」嗎?
-刪除後無法復原。`)) return;
+        if (!(await app.confirm(`確定要刪除「${this.currentReply.keyword}」？
+刪除後無法復原。`))) return;
 
         const delBtn = document.getElementById('deleteReplyBtn');
         if (delBtn) { delBtn.disabled = true; delBtn.textContent = '刪除中...'; }
