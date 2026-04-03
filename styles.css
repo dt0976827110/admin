@@ -711,3 +711,150 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
     background: var(--primary);
     color: white;
 }
+
+/* ===== 今日折抵重新設計 ===== */
+.deduction-summary {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 14px 20px;
+    margin-bottom: 14px;
+    gap: 16px;
+}
+
+.summary-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.summary-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.summary-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.summary-unit {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.summary-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border-subtle);
+    margin: 0 4px;
+}
+
+/* 折抵卡片 */
+.deduction-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+}
+
+.deduction-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.deduction-account {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.deduction-type {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.deduction-card-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+
+.deduction-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.deduction-field-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.deduction-field-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.deduction-field-value.negative { color: var(--danger); }
+.deduction-field-value.zero { color: var(--text-muted); }
+.deduction-field-value.positive { color: var(--success); }
+
+/* 狀態標籤 */
+.deduction-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-pending    { color: var(--text-secondary); }
+.status-pending .status-dot  { background: var(--text-muted); }
+.status-waiting    { color: #f59e0b; }
+.status-waiting .status-dot  { background: #f59e0b; animation: pulse 1.2s infinite; }
+.status-running    { color: var(--primary); }
+.status-running .status-dot  { background: var(--primary); animation: pulse 1.2s infinite; }
+.status-done       { color: var(--success); }
+.status-done .status-dot     { background: var(--success); }
+.status-skip       { color: var(--text-muted); }
+.status-skip .status-dot     { background: var(--text-muted); }
+.status-error      { color: var(--danger); }
+.status-error .status-dot    { background: var(--danger); }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.btn-full {
+    width: 100%;
+    margin-top: 4px;
+}
+
+#deductionActions {
+    padding-top: 4px;
+    padding-bottom: 8px;
+}

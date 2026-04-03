@@ -142,37 +142,34 @@
         <div id="deductionPage" class="page">
             <div class="page-header">
                 <h2>今日折抵</h2>
+                <button class="btn-icon" onclick="deduction.load()" title="重新整理"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
             </div>
             <div class="page-content">
-                <div class="section">
-                    <h3>貼上今日折抵資料</h3>
-                    <p class="hint">從 Excel 複製貼上,支援 Tab、逗號、空格分隔</p>
-                    <textarea id="deductionInput" placeholder="範例格式:
-R8008  6440
-R8011  40
-R8017  20
 
-或:
-R8008, 6440
-R8011, 40"></textarea>
-                    <button class="btn-primary" onclick="deduction.parseData()">解析資料</button>
-                </div>
-
-                <!-- 預覽區 -->
-                <div id="deductionPreview" class="section" style="display: none;">
-                    <h3>預覽與確認</h3>
-                    <div id="previewTable"></div>
-                    <div class="action-buttons">
-                        <button class="btn-success" onclick="deduction.execute()">執行折抵</button>
-                        <button class="btn-secondary" onclick="deduction.clearPreview()">清除</button>
+                <!-- 統計列 -->
+                <div id="deductionSummary" class="deduction-summary" style="display:none;">
+                    <div class="summary-item">
+                        <span class="summary-label">需扣抵</span>
+                        <span class="summary-value" id="summaryCount">0</span>
+                        <span class="summary-unit">筆</span>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-item">
+                        <span class="summary-label">總手續費</span>
+                        <span class="summary-value" id="summaryTotal">$0</span>
                     </div>
                 </div>
 
-                <!-- 執行結果 -->
-                <div id="deductionResult" class="section" style="display: none;">
-                    <h3>執行結果</h3>
-                    <div id="resultTable"></div>
+                <!-- 折抵名單 -->
+                <div id="deductionList" class="members-list">
+                    <div class="loading">載入中...</div>
                 </div>
+
+                <!-- 執行按鈕 -->
+                <div id="deductionActions" style="display:none;">
+                    <button class="btn-primary btn-full" id="btnExecuteDeduction" onclick="deduction.execute()">執行扣抵</button>
+                </div>
+
             </div>
         </div>
 

@@ -58,6 +58,9 @@ const api = {
     async saveAutoReply(data) { return await this.post('saveAutoReply', data); },
     async deleteAutoReply(keyword) { return await this.post('deleteAutoReply', { keyword }); },
     async processDeduction(deductionList) { return await this.post('processDeduction', deductionList); },
+    async getDeductionList() { return await this.get('getDeductionList'); },
+    async submitDeduction(rows) { return await this.post('submitDeduction', rows); },
+    async getDeductionStatus(accounts) { return await this.post('getDeductionStatus', accounts); },
     async getPendingMembers() { return await this.get('getPendingMembers'); },
     async bindMember(data) { return await this.post('bindMember', data); }
 };
@@ -194,6 +197,9 @@ const app = {
             case 'autoreply':
                 await autoreply.load();
                 break;
+            case 'deduction':
+                await deduction.load();
+                break;
         }
     },
     
@@ -298,6 +304,7 @@ const app = {
     formatRelativeTime(dateStr) {
         if (!dateStr) return '-';
         const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '-';
         const now = new Date();
         const diff = now - date;
         const minutes = Math.floor(diff / 60000);
@@ -723,356 +730,225 @@ const members = {
 // ========== deduction.js ==========
 // ===== 今日折抵模組 =====
 const deduction = {
-    parsedData: [],
-    membersMap: {},
-    
-    // 解析資料
-    async parseData() {
-        const input = document.getElementById('deductionInput').value.trim();
-        
-        if (!input) {
-            app.showToast('請貼上折抵資料', 'warning');
-            return;
-        }
-        
-        // 載入會員資料(用於驗證)
-        await this.loadMembers();
-        
-        this.parsedData = [];
-        const lines = input.split('\n');
-        
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed) continue;
-            
-            // 支援多種分隔符: Tab, 逗號, 空格
-            let parts = trimmed.split(/[\t,\s]+/);
-            
-            if (parts.length < 2) continue;
-            
-            const account = parts[0].trim();
-            const fee = parseFloat(parts[1]) || 0;
-            
-            if (!account || fee <= 0) continue;
-            
-            const member = this.membersMap[account];
-            
-            this.parsedData.push({
-                account: account,
-                fee: fee,
-                member: member,
-                canDeduct: member ? Math.min(member.balance, fee) : 0,
-                remaining: member ? member.balance - Math.min(member.balance, fee) : 0,
-                status: member ? (member.balance >= fee ? 'success' : 'warning') : 'error'
-            });
-        }
-        
-        if (this.parsedData.length === 0) {
-            app.showToast('未找到有效資料', 'warning');
-            return;
-        }
-        
-        this.showPreview();
-    },
-    
-    // 載入會員資料
-    async loadMembers() {
-        try {
-            const result = await api.getMembers();
-            if (result.success) {
-                this.membersMap = {};
-                result.data.forEach(member => {
-                    this.membersMap[member.id] = {
-                        id: member.id,
-                        name: member.name,
-                        balance: member.balance || 0,
-                        lineUid: member.lineUid
-                    };
-                });
-            }
-        } catch (error) {
-            console.error('載入會員資料失敗:', error);
-        }
-    },
-    
-    // 顯示預覽
-    showPreview() {
-        const previewDiv = document.getElementById('deductionPreview');
-        const tableDiv = document.getElementById('previewTable');
-        
-        let html = '<div class="preview-table"><table>';
-        html += '<thead><tr>';
-        html += '<th>帳號</th>';
-        html += '<th>手續費</th>';
-        html += '<th>會員餘額</th>';
-        html += '<th>可扣抵</th>';
-        html += '<th>剩餘</th>';
-        html += '<th>狀態</th>';
-        html += '</tr></thead><tbody>';
-        
-        this.parsedData.forEach(item => {
-            const statusText = {
-                'success': '✅ 正常',
-                'warning': '⚠️ 餘額不足',
-                'error': '❌ 未綁定'
-            };
-            
-            html += `<tr class="${item.status}">`;
-            html += `<td>${item.account}</td>`;
-            html += `<td>${item.fee}</td>`;
-            html += `<td>${item.member ? item.member.balance : '-'}</td>`;
-            html += `<td>${item.canDeduct}</td>`;
-            html += `<td>${item.member ? item.remaining : '-'}</td>`;
-            html += `<td>${statusText[item.status]}</td>`;
-            html += '</tr>';
-        });
-        
-        html += '</tbody></table></div>';
-        
-        tableDiv.innerHTML = html;
-        previewDiv.style.display = 'block';
-        
-        // 滾動到預覽區
-        previewDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    },
-    
-    // 清除預覽
-    clearPreview() {
-        document.getElementById('deductionInput').value = '';
-        document.getElementById('deductionPreview').style.display = 'none';
-        document.getElementById('deductionResult').style.display = 'none';
-        this.parsedData = [];
-    },
-    
-    // 執行折抵
-    async execute() {
-        if (this.parsedData.length === 0) {
-            app.showToast('沒有資料可執行', 'warning');
-            return;
-        }
+    list: [],          // 今日折抵完整列表
+    polling: null,     // 輪詢 timer
+    executing: false,
 
-        const totalAmount = this.parsedData.reduce((sum, item) => sum + item.canDeduct, 0);
-        const confirmMsg = `確定要執行折抵嗎?\n\n` +
-                          `共 ${this.parsedData.length} 筆\n` +
-                          `總扣抵金額: ${app.formatCurrency(totalAmount)}`;
-
-        if (!(await app.confirm(confirmMsg))) return;
-
-        const execBtn = document.querySelector('#deductionPreview .btn-success');
-        if (execBtn) { execBtn.disabled = true; execBtn.textContent = '執行中...'; }
-        app.showLoading('執行折抵中...');
-
-        try {
-            const deductionList = this.parsedData
-                .filter(item => item.member)
-                .map(item => ({ account: item.account, fee: item.fee }));
-
-            const result = await api.processDeduction(deductionList);
-
-            if (result.success) {
-                this.showResult(result.results);
-                app.showToast('執行成功', 'success');
-                members.allMembers = [];
-                members.filteredMembers = [];
-            } else {
-                app.showToast(result.error || '執行失敗', 'error');
-            }
-        } catch (error) {
-            console.error('執行折抵失敗:', error);
-            app.showToast('執行失敗', 'error');
-        } finally {
-            app.hideLoading();
-            if (execBtn) { execBtn.disabled = false; execBtn.textContent = '執行折抵'; }
-        }
-    },
-    
-    // 顯示執行結果
-    showResult(results) {
-        const resultDiv = document.getElementById('deductionResult');
-        const tableDiv = document.getElementById('resultTable');
-        
-        let html = '<div class="preview-table"><table>';
-        html += '<thead><tr>';
-        html += '<th>帳號</th>';
-        html += '<th>扣抵金額</th>';
-        html += '<th>剩餘餘額</th>';
-        html += '<th>狀態</th>';
-        html += '</tr></thead><tbody>';
-        
-        results.forEach(item => {
-            html += `<tr class="${item.success ? 'success' : 'error'}">`;
-            html += `<td>${item.account}</td>`;
-            html += `<td>${item.deducted || '-'}</td>`;
-            html += `<td>${item.newBalance !== undefined ? item.newBalance : '-'}</td>`;
-            html += `<td>${item.success ? '✅ 成功' : '❌ ' + (item.error || '失敗')}</td>`;
-            html += '</tr>';
-        });
-        
-        html += '</tbody></table></div>';
-        
-        tableDiv.innerHTML = html;
-        resultDiv.style.display = 'block';
-        
-        // 清空輸入框
-        document.getElementById('deductionInput').value = '';
-        document.getElementById('deductionPreview').style.display = 'none';
-        
-        // 滾動到結果區
-        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-};
-
-
-// ========== redpacket.js ==========
-// ===== 紅包活動模組 =====
-const redpacket = {
-    currentEvent: null,
-    records: [],
-    
-    // 載入紅包活動資料
     async load() {
+        const container = document.getElementById('deductionList');
+        const summary   = document.getElementById('deductionSummary');
+        const actions   = document.getElementById('deductionActions');
+        container.innerHTML = '<div class="loading">載入中...</div>';
+        summary.style.display = 'none';
+        actions.style.display = 'none';
+        this.stopPolling();
+
         try {
-            // 載入活動設定
-            const eventResult = await api.getEvent();
-            if (eventResult.success && eventResult.data) {
-                this.currentEvent = eventResult.data;
-                this.fillForm();
+            const result = await api.getDeductionList();
+            if (!result.success) {
+                container.innerHTML = '<div class="loading">載入失敗</div>';
+                app.showToast(result.error || '載入失敗', 'error');
+                return;
             }
-            
-            // 載入領取記錄（取 500 筆確保統計完整）
-            const recordResult = await api.getRedPacketRecords(500);
-            if (recordResult.success) {
-                this.records = recordResult.data;
-                this.renderStats();
-                this.renderClaimList();
-            }
-        } catch (error) {
-            console.error('載入紅包資料失敗:', error);
+
+            this.list = result.data;
+            this.render();
+        } catch (err) {
+            container.innerHTML = '<div class="loading">載入失敗</div>';
             app.showToast('載入失敗', 'error');
         }
     },
-    
-    // 重新載入
-    async refresh() {
-        app.showToast('重新載入中...', 'info');
-        await this.load();
-    },
-    
-    // 填入表單
-    fillForm() {
-        if (!this.currentEvent) return;
-        
-        document.getElementById('eventName').value = this.currentEvent.name || '';
-        document.getElementById('eventKeyword').value = this.currentEvent.keyword || '';
-        document.getElementById('eventBonus').value = this.currentEvent.bonus || '';
-        document.getElementById('eventContent').value = this.currentEvent.content || '';
-        document.getElementById('eventClaimedMsg').value = this.currentEvent.claimedMsg || '';
-        
-        // 時間格式轉換 (YYYY-MM-DD HH:mm:ss -> YYYY-MM-DDTHH:mm)
-        if (this.currentEvent.start) {
-            const startDate = new Date(this.currentEvent.start);
-            document.getElementById('eventStart').value = this.formatDateTimeLocal(startDate);
-        }
-        
-        if (this.currentEvent.end) {
-            const endDate = new Date(this.currentEvent.end);
-            document.getElementById('eventEnd').value = this.formatDateTimeLocal(endDate);
-        }
-    },
-    
-    // 格式化日期時間為 datetime-local 格式
-    formatDateTimeLocal(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-    },
-    
-    // 渲染統計
-    renderStats() {
-        const eventName = this.currentEvent?.name || '';
-        
-        // 過濾當前活動的記錄
-        const currentEventRecords = this.records.filter(r => r.eventName === eventName);
-        
-        const claimCount = currentEventRecords.length;
-        const totalAmount = currentEventRecords.reduce((sum, r) => sum + (r.amount || 0), 0);
-        
-        document.getElementById('eventClaimCount').textContent = claimCount + ' 人';
-        document.getElementById('eventTotalAmount').textContent = app.formatCurrency(totalAmount);
-    },
-    
-    // 渲染領取名單
-    renderClaimList() {
-        const container = document.getElementById('claimList');
-        
-        if (this.records.length === 0) {
-            container.innerHTML = '<div class="loading">暫無領取記錄</div>';
+
+    render() {
+        const container = document.getElementById('deductionList');
+        const summary   = document.getElementById('deductionSummary');
+        const actions   = document.getElementById('deductionActions');
+
+        if (!this.list || this.list.length === 0) {
+            container.innerHTML = '<div class="loading">今日無折抵資料</div>';
             return;
         }
-        
-        container.innerHTML = this.records.map(record => `
-            <div class="claim-item">
-                <div class="claim-info">
-                    <div class="claim-name">${record.name} - ${record.eventName}</div>
-                    <div class="claim-time">${app.formatRelativeTime(record.time)}</div>
-                </div>
-                <div class="claim-amount">+${record.amount}</div>
+
+        // 計算統計
+        const needDeduct  = this.list.filter(r => r.canDeduct > 0);
+        const totalFee    = this.list.reduce((s, r) => s + r.fee, 0);
+        document.getElementById('summaryCount').textContent = needDeduct.length;
+        document.getElementById('summaryTotal').textContent = '$' + totalFee.toLocaleString();
+        summary.style.display = 'flex';
+
+        // 渲染卡片
+        container.innerHTML = this.list.map(row => this.renderCard(row)).join('');
+
+        // 顯示執行按鈕（如果有待扣抵的）
+        const hasPending = this.list.some(r => r.canDeduct > 0 && r.done !== '已處理');
+        actions.style.display = hasPending ? 'block' : 'none';
+    },
+
+    renderCard(row) {
+        const canDeduct = row.canDeduct;
+        const isDone    = row.done === '已處理';
+        const isSkip    = canDeduct <= 0;
+
+        // 狀態 HTML
+        let statusHtml = '';
+        if (row._status) {
+            statusHtml = this.renderStatus(row._status, row._result);
+        } else if (isDone) {
+            statusHtml = this.renderStatus('done', `已扣抵 $${row.deducted}`);
+        } else if (isSkip) {
+            statusHtml = this.renderStatus('skip', '折扣金餘額不足，不需扣抵');
+        }
+
+        return `
+        <div class="deduction-card" id="card-${row.account}">
+            <div class="deduction-card-header">
+                <span class="deduction-account">${row.account}</span>
+                <span class="deduction-type">${row.type || '會員'}</span>
             </div>
-        `).join('');
+            <div class="deduction-card-body">
+                <div class="deduction-field">
+                    <span class="deduction-field-label">手續費</span>
+                    <span class="deduction-field-value ${row.fee > 0 ? 'negative' : 'zero'}">$${row.fee.toLocaleString()}</span>
+                </div>
+                <div class="deduction-field">
+                    <span class="deduction-field-label">折扣金餘額</span>
+                    <span class="deduction-field-value ${row.balance > 0 ? '' : 'zero'}">$${row.balance.toLocaleString()}</span>
+                </div>
+                <div class="deduction-field">
+                    <span class="deduction-field-label">可扣抵</span>
+                    <span class="deduction-field-value ${canDeduct > 0 ? 'positive' : 'zero'}">$${canDeduct.toLocaleString()}</span>
+                </div>
+            </div>
+            ${statusHtml ? `<div class="deduction-status ${this.getStatusClass(row._status || (isDone ? 'done' : isSkip ? 'skip' : ''))}">${statusHtml}</div>` : ''}
+        </div>`;
+    },
+
+    renderStatus(status, msg) {
+        return `<div class="status-dot"></div><span>${msg || ''}</span>`;
+    },
+
+    getStatusClass(status) {
+        const map = { waiting: 'status-waiting', running: 'status-running', done: 'status-done', skip: 'status-skip', error: 'status-error' };
+        return map[status] || 'status-pending';
+    },
+
+    updateCardStatus(account, status, result) {
+        const card = document.getElementById('card-' + account);
+        if (!card) return;
+
+        const labels = { waiting: '⏳ 待執行', running: '⚙️ 執行中', done: '✅ 充值成功，LINE 推播已發送', skip: '➖ 不需扣抵', error: '❌ ' + (result || '失敗') };
+        const msg    = labels[status] || result || '';
+
+        let statusDiv = card.querySelector('.deduction-status');
+        if (!statusDiv) {
+            statusDiv = document.createElement('div');
+            card.appendChild(statusDiv);
+        }
+        statusDiv.className = `deduction-status ${this.getStatusClass(status)}`;
+        statusDiv.innerHTML = `<div class="status-dot"></div><span>${msg}</span>`;
+    },
+
+    async execute() {
+        if (this.executing) return;
+
+        const toDeduct = this.list.filter(r => r.canDeduct > 0 && r.done !== '已處理');
+        if (toDeduct.length === 0) {
+            app.showToast('沒有需要扣抵的項目', 'warning');
+            return;
+        }
+
+        const ok = await app.confirm(`確定執行扣抵？
+
+共 ${toDeduct.length} 筆，總金額 $${toDeduct.reduce((s,r) => s + r.canDeduct, 0).toLocaleString()}`);
+        if (!ok) return;
+
+        this.executing = true;
+        document.getElementById('btnExecuteDeduction').disabled = true;
+        document.getElementById('btnExecuteDeduction').textContent = '執行中...';
+
+        // 先顯示所有待執行狀態
+        toDeduct.forEach(r => {
+            r._status = 'waiting';
+            this.updateCardStatus(r.account, 'waiting');
+        });
+
+        // 不需扣抵的顯示 skip
+        this.list.filter(r => r.canDeduct <= 0).forEach(r => {
+            this.updateCardStatus(r.account, 'skip');
+        });
+
+        // 送出到 GAS 寫入會員充值 sheet
+        try {
+            const rows = toDeduct.map(r => ({
+                account:      r.account,
+                canDeduct:    r.canDeduct,
+                deductionRow: r.row
+            }));
+            const result = await api.submitDeduction(rows);
+            if (!result.success) {
+                app.showToast('送出失敗：' + result.error, 'error');
+                this.executing = false;
+                document.getElementById('btnExecuteDeduction').disabled = false;
+                document.getElementById('btnExecuteDeduction').textContent = '執行扣抵';
+                return;
+            }
+
+            // 開始輪詢狀態
+            const accounts = toDeduct.map(r => r.account);
+            this.startPolling(accounts, toDeduct);
+
+        } catch (err) {
+            app.showToast('送出失敗', 'error');
+            this.executing = false;
+            document.getElementById('btnExecuteDeduction').disabled = false;
+            document.getElementById('btnExecuteDeduction').textContent = '執行扣抵';
+        }
+    },
+
+    startPolling(accounts, rows) {
+        this.polling = setInterval(async () => {
+            try {
+                const result = await api.getDeductionStatus(accounts);
+                if (!result.success) return;
+
+                const statusMap = result.data;
+                let allDone = true;
+
+                accounts.forEach(acct => {
+                    const s = statusMap[acct];
+                    if (!s) { allDone = false; return; }
+
+                    if (s.status === '完成') {
+                        this.updateCardStatus(acct, 'done', s.result);
+                    } else if (s.status === '失敗') {
+                        this.updateCardStatus(acct, 'error', s.result);
+                    } else if (s.status === '執行中') {
+                        this.updateCardStatus(acct, 'running');
+                        allDone = false;
+                    } else {
+                        allDone = false;
+                    }
+                });
+
+                if (allDone) {
+                    this.stopPolling();
+                    this.executing = false;
+                    document.getElementById('btnExecuteDeduction').style.display = 'none';
+                    app.showToast('扣抵完成！', 'success');
+                }
+            } catch (err) {
+                console.error('輪詢失敗:', err);
+            }
+        }, 3000);
+    },
+
+    stopPolling() {
+        if (this.polling) {
+            clearInterval(this.polling);
+            this.polling = null;
+        }
     }
 };
-
-// 表單提交事件
-document.getElementById('eventForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const startRaw = document.getElementById('eventStart').value;
-    const endRaw   = document.getElementById('eventEnd').value;
-
-    // 補上 +08:00 時區，避免 GAS new Date() 用 UTC 解析導致少 8 小時
-    const toTaipeiISO = (localStr) => localStr ? localStr + ':00+08:00' : '';
-
-    const data = {
-        name:       document.getElementById('eventName').value.trim(),
-        keyword:    document.getElementById('eventKeyword').value.trim(),
-        bonus:      parseInt(document.getElementById('eventBonus').value),
-        content:    document.getElementById('eventContent').value,
-        claimedMsg: document.getElementById('eventClaimedMsg').value,
-        start:      toTaipeiISO(startRaw),
-        end:        toTaipeiISO(endRaw)
-    };
-
-    if (!data.name || !data.keyword || !data.bonus || !startRaw || !endRaw) {
-        app.showToast('請填寫所有必填欄位', 'warning');
-        return;
-    }
-
-    if (!(await app.confirm(`確定要儲存紅包活動「${data.name}」的設定嗎？`))) return;
-
-    const saveBtn = e.submitter || document.querySelector('#eventForm .btn-primary');
-    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '儲存中...'; }
-    app.showLoading('儲存活動設定...');
-
-    try {
-        const result = await api.updateEvent(data);
-        if (result.success) {
-            app.showToast('儲存成功', 'success');
-            redpacket.currentEvent = data;
-            await redpacket.load();
-        } else {
-            app.showToast(result.error || '儲存失敗', 'error');
-        }
-    } catch (error) {
-        console.error('儲存紅包活動失敗:', error);
-        app.showToast('儲存失敗', 'error');
-    } finally {
-        app.hideLoading();
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '儲存設定'; }
-    }
-});
 
 
 // ========== autoreply.js ==========
