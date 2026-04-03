@@ -948,6 +948,120 @@ const deduction = {
 };
 
 
+// ========== redpacket.js ==========
+// ===== 紅包活動模組 =====
+const redpacket = {
+    currentEvent: null,
+    records: [],
+
+    async load() {
+        try {
+            const eventResult = await api.getEvent();
+            if (eventResult.success && eventResult.data) {
+                this.currentEvent = eventResult.data;
+                this.fillForm();
+            }
+            const recordResult = await api.getRedPacketRecords(500);
+            if (recordResult.success) {
+                this.records = recordResult.data;
+                this.renderStats();
+                this.renderClaimList();
+            }
+        } catch (error) {
+            console.error('載入紅包資料失敗:', error);
+            app.showToast('載入失敗', 'error');
+        }
+    },
+
+    async refresh() {
+        app.showToast('重新載入中...', 'info');
+        await this.load();
+    },
+
+    fillForm() {
+        if (!this.currentEvent) return;
+        document.getElementById('eventName').value = this.currentEvent.name || '';
+        document.getElementById('eventKeyword').value = this.currentEvent.keyword || '';
+        document.getElementById('eventBonus').value = this.currentEvent.bonus || '';
+        document.getElementById('eventContent').value = this.currentEvent.content || '';
+        document.getElementById('eventClaimedMsg').value = this.currentEvent.claimedMsg || '';
+        if (this.currentEvent.start) {
+            document.getElementById('eventStart').value = this.formatDateTimeLocal(new Date(this.currentEvent.start));
+        }
+        if (this.currentEvent.end) {
+            document.getElementById('eventEnd').value = this.formatDateTimeLocal(new Date(this.currentEvent.end));
+        }
+    },
+
+    formatDateTimeLocal(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        const h = String(date.getHours()).padStart(2, '0');
+        const mi = String(date.getMinutes()).padStart(2, '0');
+        return `${y}-${m}-${d}T${h}:${mi}`;
+    },
+
+    renderStats() {
+        const eventName = this.currentEvent?.name || '';
+        const current = this.records.filter(r => r.eventName === eventName);
+        document.getElementById('eventClaimCount').textContent = current.length + ' 人';
+        document.getElementById('eventTotalAmount').textContent = '$' + current.reduce((s, r) => s + (r.amount || 0), 0).toLocaleString();
+    },
+
+    renderClaimList() {
+        const container = document.getElementById('claimList');
+        if (this.records.length === 0) {
+            container.innerHTML = '<div class="loading">暫無領取記錄</div>';
+            return;
+        }
+        container.innerHTML = this.records.map(record => `
+            <div class="claim-item">
+                <div class="claim-info">
+                    <div class="claim-name">${record.name} - ${record.eventName}</div>
+                    <div class="claim-time">${app.formatRelativeTime(record.time)}</div>
+                </div>
+                <div class="claim-amount">+${record.amount}</div>
+            </div>
+        `).join('');
+    }
+};
+
+document.getElementById('eventForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+        name:       document.getElementById('eventName').value,
+        keyword:    document.getElementById('eventKeyword').value,
+        bonus:      parseInt(document.getElementById('eventBonus').value),
+        content:    document.getElementById('eventContent').value,
+        claimedMsg: document.getElementById('eventClaimedMsg').value,
+        start:      document.getElementById('eventStart').value + '+08:00',
+        end:        document.getElementById('eventEnd').value + '+08:00'
+    };
+    if (!data.name || !data.keyword || !data.bonus || !data.start || !data.end) {
+        app.showToast('請填寫所有必填欄位', 'warning');
+        return;
+    }
+    const ok = await app.confirm('確定要儲存紅包活動設定嗎?');
+    if (!ok) return;
+    app.showLoading('儲存中...');
+    try {
+        const result = await api.updateEvent(data);
+        if (result.success) {
+            app.showToast('儲存成功', 'success');
+            redpacket.currentEvent = data;
+            await redpacket.load();
+        } else {
+            app.showToast(result.error || '儲存失敗', 'error');
+        }
+    } catch (error) {
+        app.showToast('儲存失敗', 'error');
+    } finally {
+        app.hideLoading();
+    }
+});
+
+
 // ========== autoreply.js ==========
 // ===== 自動回應模組 =====
 const autoreply = {
