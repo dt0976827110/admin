@@ -105,16 +105,20 @@ const app = {
     async login() {
         const password = document.getElementById('passwordInput').value;
         const errorEl = document.getElementById('loginError');
-        
+        const loginBtn = document.getElementById('loginBtn');
+
+        // 防重複點擊
+        if (loginBtn.disabled) return;
+        loginBtn.disabled = true;
+        loginBtn.textContent = '登入中...';
+        errorEl.textContent = '';
+
         // 暫存密碼
         sessionStorage.setItem(CONFIG.PASSWORD_KEY, password);
-        
+
         try {
-            // 測試 API 連線
             const result = await api.getDashboard();
-            
             if (result.success) {
-                errorEl.textContent = '';
                 this.showApp();
                 this.navigateTo('dashboard');
                 this.showToast('登入成功', 'success');
@@ -125,6 +129,9 @@ const app = {
             sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
             errorEl.textContent = '密碼錯誤或無法連接伺服器';
             this.showToast('登入失敗', 'error');
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.textContent = '登入';
         }
     },
     
@@ -211,6 +218,24 @@ const app = {
         }, 3000);
     },
     
+    // 全域 loading 遮罩（防重複操作）
+    showLoading(msg = '處理中...') {
+        let el = document.getElementById('globalLoading');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'globalLoading';
+            el.innerHTML = `<div class="loading-spinner"></div><div class="loading-msg"></div>`;
+            document.body.appendChild(el);
+        }
+        el.querySelector('.loading-msg').textContent = msg;
+        el.classList.add('active');
+    },
+
+    hideLoading() {
+        const el = document.getElementById('globalLoading');
+        if (el) el.classList.remove('active');
+    },
+
     // 顯示 Modal
     showModal(modalId) {
         const overlay = document.getElementById('modalOverlay');
@@ -278,14 +303,17 @@ const app = {
     }
 };
 
-// Modal 點擊遮罩關閉
-document.getElementById('modalOverlay').addEventListener('click', () => {
-    document.querySelectorAll('.modal.active').forEach(modal => {
-        const modalId = modal.id;
-        if (modalId === 'memberModal') {
-            members.closeModal();
-        } else if (modalId === 'replyModal') {
-            autoreply.closeModal();
+// Modal 點擊遮罩關閉（判斷 overlay active 狀態，非 modal.active class）
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    // 只在點到遮罩本身時關閉，點到 modal 卡片內不觸發
+    if (e.target !== document.getElementById('modalOverlay')) return;
+    const overlay = document.getElementById('modalOverlay');
+    if (!overlay.classList.contains('active')) return;
+    // 找出目前顯示中的 modal
+    overlay.querySelectorAll('.modal').forEach(modal => {
+        if (modal.style.display !== 'none') {
+            if (modal.id === 'memberModal') members.closeModal();
+            else if (modal.id === 'replyModal') autoreply.closeModal();
         }
     });
 });
@@ -496,18 +524,33 @@ const members = {
     // 儲存會員
     async saveMember() {
         if (!this.currentMember) return;
-        
+
         const newBalance = parseInt(document.getElementById('modalBalance').value);
         const status = document.getElementById('modalStatus').value;
         const note = document.getElementById('modalNote').value;
-        
-        // 確認大額調整
-        if (Math.abs(this.balanceChange) >= 10000) {
-            if (!confirm(`確定要調整 ${this.balanceChange >= 0 ? '+' : ''}${this.balanceChange} 元嗎?`)) {
-                return;
-            }
+
+        const statusChanged = status !== (this.currentMember.status || '啟用');
+        const noteChanged = note !== (this.currentMember.note || '');
+        const hasChange = this.balanceChange !== 0 || statusChanged || noteChanged;
+
+        // 沒有任何修改 → 直接關閉
+        if (!hasChange) {
+            this.closeModal();
+            return;
         }
-        
+
+        // 確認浮窗 — 任何變更都要確認
+        let confirmLines = [`確定要儲存會員 ${this.currentMember.id} ${this.currentMember.name} 的修改嗎?`, ''];
+        if (this.balanceChange !== 0) {
+            confirmLines.push(`折扣金：${this.originalBalance} → ${newBalance}（${this.balanceChange > 0 ? '+' : ''}${this.balanceChange}）`);
+        }
+        if (statusChanged) confirmLines.push(`狀態：${this.currentMember.status} → ${status}`);
+        if (noteChanged)   confirmLines.push(`備註：已修改`);
+
+        if (!confirm(confirmLines.join('
+'))) return;
+
+        app.showLoading('儲存中...');
         try {
             const data = {
                 memberId: this.currentMember.id,
@@ -515,28 +558,28 @@ const members = {
                 status: status,
                 note: note
             };
-            
+
             const result = await api.updateMember(data);
-            
+
             if (result.success) {
-                app.showToast('儲存成功', 'success');
-                this.closeModal();
-                
-                // 更新本地資料
+                // 用前端計算值更新快取（單一使用者，無並發問題）
                 const member = this.allMembers.find(m => m.id === this.currentMember.id);
                 if (member) {
                     member.balance = newBalance;
                     member.status = status;
                     member.note = note;
                 }
-                
+                this.closeModal();
                 this.render();
+                app.showToast('儲存成功', 'success');
             } else {
                 app.showToast(result.error || '儲存失敗', 'error');
             }
         } catch (error) {
             console.error('儲存會員失敗:', error);
             app.showToast('儲存失敗', 'error');
+        } finally {
+            app.hideLoading();
         }
     }
 };
@@ -672,34 +715,28 @@ const deduction = {
             app.showToast('沒有資料可執行', 'warning');
             return;
         }
-        
-        // 確認執行
+
         const totalAmount = this.parsedData.reduce((sum, item) => sum + item.canDeduct, 0);
         const confirmMsg = `確定要執行折抵嗎?\n\n` +
                           `共 ${this.parsedData.length} 筆\n` +
                           `總扣抵金額: ${app.formatCurrency(totalAmount)}`;
-        
-        if (!confirm(confirmMsg)) {
-            return;
-        }
-        
+
+        if (!confirm(confirmMsg)) return;
+
+        const execBtn = document.querySelector('#deductionPreview .btn-success');
+        if (execBtn) { execBtn.disabled = true; execBtn.textContent = '執行中...'; }
+        app.showLoading('執行折抵中...');
+
         try {
-            app.showToast('執行中...', 'info');
-            
-            // 準備資料
             const deductionList = this.parsedData
-                .filter(item => item.member) // 只處理有綁定的會員
-                .map(item => ({
-                    account: item.account,
-                    fee: item.fee
-                }));
-            
+                .filter(item => item.member)
+                .map(item => ({ account: item.account, fee: item.fee }));
+
             const result = await api.processDeduction(deductionList);
-            
+
             if (result.success) {
                 this.showResult(result.results);
                 app.showToast('執行成功', 'success');
-                // 清除會員快取，確保下次進會員頁看到最新餘額
                 members.allMembers = [];
                 members.filteredMembers = [];
             } else {
@@ -708,6 +745,9 @@ const deduction = {
         } catch (error) {
             console.error('執行折抵失敗:', error);
             app.showToast('執行失敗', 'error');
+        } finally {
+            app.hideLoading();
+            if (execBtn) { execBtn.disabled = false; execBtn.textContent = '執行折抵'; }
         }
     },
     
@@ -764,8 +804,8 @@ const redpacket = {
                 this.fillForm();
             }
             
-            // 載入領取記錄
-            const recordResult = await api.getRedPacketRecords(50);
+            // 載入領取記錄（取 500 筆確保統計完整）
+            const recordResult = await api.getRedPacketRecords(500);
             if (recordResult.success) {
                 this.records = recordResult.data;
                 this.renderStats();
@@ -853,31 +893,36 @@ const redpacket = {
 // 表單提交事件
 document.getElementById('eventForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
+    const startRaw = document.getElementById('eventStart').value;
+    const endRaw   = document.getElementById('eventEnd').value;
+
+    // 補上 +08:00 時區，避免 GAS new Date() 用 UTC 解析導致少 8 小時
+    const toTaipeiISO = (localStr) => localStr ? localStr + ':00+08:00' : '';
+
     const data = {
-        name: document.getElementById('eventName').value,
-        keyword: document.getElementById('eventKeyword').value,
-        bonus: parseInt(document.getElementById('eventBonus').value),
-        content: document.getElementById('eventContent').value,
+        name:       document.getElementById('eventName').value.trim(),
+        keyword:    document.getElementById('eventKeyword').value.trim(),
+        bonus:      parseInt(document.getElementById('eventBonus').value),
+        content:    document.getElementById('eventContent').value,
         claimedMsg: document.getElementById('eventClaimedMsg').value,
-        start: document.getElementById('eventStart').value,
-        end: document.getElementById('eventEnd').value
+        start:      toTaipeiISO(startRaw),
+        end:        toTaipeiISO(endRaw)
     };
-    
-    // 驗證
-    if (!data.name || !data.keyword || !data.bonus || !data.start || !data.end) {
+
+    if (!data.name || !data.keyword || !data.bonus || !startRaw || !endRaw) {
         app.showToast('請填寫所有必填欄位', 'warning');
         return;
     }
-    
-    // 確認儲存
-    if (!confirm('確定要儲存紅包活動設定嗎?')) {
-        return;
-    }
-    
+
+    if (!confirm(`確定要儲存紅包活動「${data.name}」的設定嗎?`)) return;
+
+    const saveBtn = e.submitter || document.querySelector('#eventForm .btn-primary');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '儲存中...'; }
+    app.showLoading('儲存活動設定...');
+
     try {
         const result = await api.updateEvent(data);
-        
         if (result.success) {
             app.showToast('儲存成功', 'success');
             redpacket.currentEvent = data;
@@ -888,6 +933,9 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
     } catch (error) {
         console.error('儲存紅包活動失敗:', error);
         app.showToast('儲存失敗', 'error');
+    } finally {
+        app.hideLoading();
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '儲存設定'; }
     }
 });
 
@@ -1033,26 +1081,35 @@ const autoreply = {
     async saveReply() {
         const keyword = document.getElementById('replyKeyword').value.trim();
         const content = document.getElementById('replyContent').value.trim();
-        const status = document.getElementById('replyStatus').value;
+        const status  = document.getElementById('replyStatus').value;
         const startTime = document.getElementById('replyStart').value;
-        const endTime = document.getElementById('replyEnd').value;
-        
+        const endTime   = document.getElementById('replyEnd').value;
+
         if (!keyword || !content) {
             app.showToast('請填寫關鍵字和回覆內容', 'warning');
             return;
         }
-        
+
+        const modalSaveBtn = document.querySelector('#replyModal .btn-primary');
+        if (modalSaveBtn && modalSaveBtn.disabled) return;
+        if (modalSaveBtn) { modalSaveBtn.disabled = true; modalSaveBtn.textContent = '儲存中...'; }
+        app.showLoading('儲存中...');
+
         try {
             const data = {
                 keyword: keyword,
                 content: content,
                 status: status,
                 startTime: startTime || null,
-                endTime: endTime || null
+                endTime: endTime || null,
+                // 編輯模式：傳原始 keyword，讓 GAS 先刪舊的再寫新的
+                originalKeyword: (this.editMode && this.currentReply)
+                    ? this.currentReply.keyword
+                    : null
             };
-            
+
             const result = await api.saveAutoReply(data);
-            
+
             if (result.success) {
                 app.showToast('儲存成功', 'success');
                 this.closeModal();
@@ -1063,24 +1120,25 @@ const autoreply = {
         } catch (error) {
             console.error('儲存自動回應失敗:', error);
             app.showToast('儲存失敗', 'error');
-            if (saveBtn) {
-                saveBtn.classList.remove('loading');
-                saveBtn.disabled = false;
-            }
+        } finally {
+            app.hideLoading();
+            if (modalSaveBtn) { modalSaveBtn.disabled = false; modalSaveBtn.textContent = '儲存'; }
         }
     },
     
     // 刪除自動回應
     async deleteReply() {
         if (!this.currentReply) return;
-        
-        if (!confirm(`確定要刪除「${this.currentReply.keyword}」嗎?`)) {
-            return;
-        }
-        
+
+        if (!confirm(`確定要刪除「${this.currentReply.keyword}」嗎?
+刪除後無法復原。`)) return;
+
+        const delBtn = document.getElementById('deleteReplyBtn');
+        if (delBtn) { delBtn.disabled = true; delBtn.textContent = '刪除中...'; }
+        app.showLoading('刪除中...');
+
         try {
             const result = await api.deleteAutoReply(this.currentReply.keyword);
-            
             if (result.success) {
                 app.showToast('刪除成功', 'success');
                 this.closeModal();
@@ -1091,6 +1149,9 @@ const autoreply = {
         } catch (error) {
             console.error('刪除自動回應失敗:', error);
             app.showToast('刪除失敗', 'error');
+        } finally {
+            app.hideLoading();
+            if (delBtn) { delBtn.disabled = false; delBtn.textContent = '刪除'; }
         }
     }
 };
