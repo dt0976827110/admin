@@ -45,6 +45,8 @@ body {
     color: var(--text-primary);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    /* 頂部安全區域，避免內容躲到狀態列後面 */
+    padding-top: env(safe-area-inset-top);
 }
 
 /* ===== 頁面結構 ===== */
@@ -139,7 +141,7 @@ button { font-family: inherit; cursor: pointer; transition: all 0.15s; border: n
 .page-header {
     display: flex; justify-content: space-between; align-items: center;
     padding: 15px 20px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle);
-    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); min-height: 58px;
+    position: sticky; top: env(safe-area-inset-top); z-index: 100; backdrop-filter: blur(12px); min-height: 58px;
 }
 .page-header h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
 
