@@ -113,14 +113,27 @@
                 <button class="btn-icon" onclick="members.refresh()" title="重新整理"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
             </div>
             <div class="page-content">
-                <!-- 搜尋列 -->
-                <div class="search-bar">
-                    <input type="text" id="memberSearch" placeholder="搜尋會員 ID、姓名、LINE UID...">
+                <!-- Tab 切換 -->
+                <div class="tab-bar">
+                    <button class="tab-btn active" id="tabMembers" onclick="members.switchTab('members')">會員列表</button>
+                    <button class="tab-btn" id="tabPending" onclick="members.switchTab('pending')">待綁定 <span id="pendingBadge" class="tab-badge"></span></button>
                 </div>
 
-                <!-- 會員列表 -->
-                <div id="membersList" class="members-list">
-                    <div class="loading">載入中...</div>
+                <!-- 會員列表 tab -->
+                <div id="tabPanelMembers">
+                    <div class="search-bar">
+                        <input type="text" id="memberSearch" placeholder="搜尋會員 ID、姓名、LINE UID...">
+                    </div>
+                    <div id="membersList" class="members-list">
+                        <div class="loading">載入中...</div>
+                    </div>
+                </div>
+
+                <!-- 待綁定 tab -->
+                <div id="tabPanelPending" style="display:none;">
+                    <div id="pendingList" class="members-list">
+                        <div class="loading">載入中...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -274,6 +287,45 @@ R8011, 40"></textarea>
 
     <!-- Modal 遮罩 + 彈窗容器 -->
     <div id="modalOverlay" class="modal-overlay">
+
+    <!-- 待綁定會員綁定 Modal -->
+    <div id="bindModal" class="modal">
+        <div class="modal-header">
+            <h3>綁定會員</h3>
+            <button class="btn-close" onclick="members.closeBindModal()">×</button>
+        </div>
+        <div class="modal-content">
+            <div class="member-info-grid">
+                <span class="info-label">LINE 名稱</span>
+                <span id="bindLineName" class="info-value"></span>
+                <span class="info-label">LINE UID</span>
+                <span id="bindLineUid" class="info-value copy-text"></span>
+            </div>
+            <div class="form-group">
+                <label>會員 ID</label>
+                <input type="text" id="bindMemberId" placeholder="例：R8036">
+            </div>
+            <div class="form-group">
+                <label>姓名</label>
+                <input type="text" id="bindMemberName" placeholder="會員姓名">
+            </div>
+            <div class="form-group">
+                <label>折扣金餘額</label>
+                <input type="number" id="bindBalance" placeholder="0" value="0">
+            </div>
+            <div class="form-group">
+                <label>狀態</label>
+                <select id="bindStatus">
+                    <option value="啟用">啟用</option>
+                    <option value="停用">停用</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="members.closeBindModal()">取消</button>
+            <button class="btn-primary" onclick="members.bindMember()">綁定</button>
+        </div>
+    </div>
 
     <!-- 會員編輯 Modal -->
     <div id="memberModal" class="modal">

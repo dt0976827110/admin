@@ -57,7 +57,9 @@ const api = {
     async getAutoReplies() { return await this.get('getAutoReplies'); },
     async saveAutoReply(data) { return await this.post('saveAutoReply', data); },
     async deleteAutoReply(keyword) { return await this.post('deleteAutoReply', { keyword }); },
-    async processDeduction(deductionList) { return await this.post('processDeduction', deductionList); }
+    async processDeduction(deductionList) { return await this.post('processDeduction', deductionList); },
+    async getPendingMembers() { return await this.get('getPendingMembers'); },
+    async bindMember(data) { return await this.post('bindMember', data); }
 };
 
 // ========== app.js ==========
@@ -420,6 +422,9 @@ const members = {
     currentMember: null,
     originalBalance: 0,
     balanceChange: 0,
+    currentTab: 'members',
+    pendingList: [],
+    currentPending: null,
     
     // 載入會員列表
     async load() {
@@ -538,6 +543,122 @@ const members = {
         document.getElementById('customAdjust').value = '';
     },
     
+    // ===== Tab 切換 =====
+    switchTab(tab) {
+        this.currentTab = tab;
+        document.getElementById('tabMembers').classList.toggle('active', tab === 'members');
+        document.getElementById('tabPending').classList.toggle('active', tab === 'pending');
+        document.getElementById('tabPanelMembers').style.display = tab === 'members' ? '' : 'none';
+        document.getElementById('tabPanelPending').style.display = tab === 'pending' ? '' : 'none';
+
+        if (tab === 'pending') {
+            this.loadPending();
+        }
+    },
+
+    // ===== 待綁定列表 =====
+    async loadPending() {
+        const container = document.getElementById('pendingList');
+        container.innerHTML = '<div class="loading">載入中...</div>';
+
+        try {
+            const result = await api.getPendingMembers();
+            if (result.success) {
+                this.pendingList = result.data;
+                this.renderPending();
+            }
+        } catch (error) {
+            container.innerHTML = '<div class="loading">載入失敗</div>';
+            app.showToast('載入失敗', 'error');
+        }
+    },
+
+    renderPending() {
+        const container = document.getElementById('pendingList');
+        const badge = document.getElementById('pendingBadge');
+
+        if (!this.pendingList || this.pendingList.length === 0) {
+            badge.textContent = '';
+            container.innerHTML = '<div class="loading">目前沒有待綁定的 LINE 會員</div>';
+            return;
+        }
+
+        badge.textContent = this.pendingList.length;
+        container.innerHTML = this.pendingList.map((item, index) => `
+            <div class="pending-card" onclick="members.showBindModal(${index})">
+                <div class="pending-info">
+                    <div class="pending-name">${item.lineName}</div>
+                    <div class="pending-uid">${item.lineUid}</div>
+                </div>
+                <button class="pending-bind-btn" onclick="event.stopPropagation(); members.showBindModal(${index})">綁定</button>
+            </div>
+        `).join('');
+    },
+
+    // ===== 綁定 Modal =====
+    showBindModal(index) {
+        this.currentPending = this.pendingList[index];
+
+        document.getElementById('bindLineName').textContent = this.currentPending.lineName;
+        document.getElementById('bindLineUid').textContent = this.currentPending.lineUid;
+        document.getElementById('bindMemberId').value = '';
+        document.getElementById('bindMemberName').value = '';
+        document.getElementById('bindBalance').value = '0';
+        document.getElementById('bindStatus').value = '啟用';
+
+        document.getElementById('bindLineUid').onclick = () => {
+            app.copyToClipboard(this.currentPending.lineUid);
+        };
+
+        app.showModal('bindModal');
+    },
+
+    closeBindModal() {
+        app.hideModal('bindModal');
+        this.currentPending = null;
+    },
+
+    async bindMember() {
+        const memberId   = document.getElementById('bindMemberId').value.trim();
+        const memberName = document.getElementById('bindMemberName').value.trim();
+        const balance    = parseInt(document.getElementById('bindBalance').value) || 0;
+        const status     = document.getElementById('bindStatus').value;
+
+        if (!memberId || !memberName) {
+            app.showToast('請填寫會員 ID 和姓名', 'warning');
+            return;
+        }
+
+        const ok = await app.confirm(
+            `確定要綁定？\n\nLINE：${this.currentPending.lineName}\n會員 ID：${memberId}\n姓名：${memberName}\n折扣金：${balance}`
+        );
+        if (!ok) return;
+
+        app.showLoading('綁定中...');
+        try {
+            const result = await api.bindMember({
+                lineUid:    this.currentPending.lineUid,
+                lineName:   this.currentPending.lineName,
+                memberId:   memberId,
+                memberName: memberName,
+                balance:    balance,
+                status:     status
+            });
+
+            if (result.success) {
+                app.showToast('綁定成功', 'success');
+                this.closeBindModal();
+                await this.loadPending();
+            } else {
+                app.showToast(result.error || '綁定失敗', 'error');
+            }
+        } catch (error) {
+            app.showToast('綁定失敗', 'error');
+        } finally {
+            app.hideLoading();
+        }
+    },
+
     // 儲存會員
     async saveMember() {
         if (!this.currentMember) return;
