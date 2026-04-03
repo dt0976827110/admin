@@ -331,14 +331,24 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
 .form-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 10px;
+    gap: 8px;
 }
 
-/* datetime-local 原生控件在窄容器容易溢出，強制不超出 */
+/* datetime-local 縮小字體讓原生控件在窄欄內顯示完整 */
 input[type="datetime-local"] {
     width: 100%;
     min-width: 0;
-    overflow: hidden;
+    box-sizing: border-box;
+    font-size: 11.5px !important;
+    padding: 9px 5px !important;
+    letter-spacing: -0.02em;
+}
+
+/* 當視窗非常窄時（modal 在手機上約 340px 以下）改為單欄 */
+@media (max-width: 400px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* 會員餘額調整 */
@@ -391,7 +401,7 @@ input[type="datetime-local"] {
 }
 .modal-overlay.active {
     display: flex; align-items: flex-start; justify-content: center;
-    padding: max(20px, 4vh) 16px 20px;
+    padding: max(20px, 4vh) 10px 20px;
 }
 
 .modal {
@@ -402,14 +412,14 @@ input[type="datetime-local"] {
 
 .modal-header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 16px 20px; border-bottom: 1px solid var(--border-subtle);
+    padding: 14px 16px; border-bottom: 1px solid var(--border-subtle);
 }
 .modal-header h3 { font-size: 16px; font-weight: 600; }
 
-.modal-content { padding: 16px 20px; max-height: 60vh; overflow-y: auto; }
+.modal-content { padding: 14px 16px; max-height: 62vh; overflow-y: auto; }
 
 .modal-footer {
-    display: flex; gap: 10px; padding: 14px 20px;
+    display: flex; gap: 8px; padding: 12px 16px;
     border-top: 1px solid var(--border-subtle);
 }
 .modal-footer button {
