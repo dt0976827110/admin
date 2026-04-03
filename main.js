@@ -1,34 +1,34 @@
 // ========== config.js ==========
 const CONFIG = {
-    API_URL: 'https://script.google.com/macros/s/AKfycbzj_V9ywaB7S3CBLinOcWOpxB-9-UM7VnWs7e_v5LtnEbAr9OjAzgdmf0yNg8oiwcbU/exec',
-    PASSWORD_KEY: 'admin_password'
+    API_URL: 'https://script.google.com/macros/s/AKfycbzj_V9ywaB7S3CBLinOcWOpxB-9-UM7VnWs7e_v5LtnEbAr9OjAzgdmf0yNg8oiwcbU/exec'
 };
+
+// 登入後儲存的密碼（僅本次 session，不做持久化）
+let _sessionPassword = null;
 
 // ========== api.js ==========
 const api = {
     async request(action, method = 'GET', data = null) {
-        const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
-        
-        if (!password) {
+        if (!_sessionPassword) {
             throw new Error('未登入');
         }
-        
-        let url = `${CONFIG.API_URL}?action=${action}&password=${password}`;
-        
+
+        let url = `${CONFIG.API_URL}?action=${action}&password=${encodeURIComponent(_sessionPassword)}`;
+
         if (data && method === 'POST') {
             url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
         }
-        
+
         try {
             const response = await fetch(url, { method: 'GET' });
             const result = await response.json();
-            
+
             if (result.error === 'Unauthorized') {
-                sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
-                app.logout();
-                throw new Error('認證失敗,請重新登入');
+                _sessionPassword = null;
+                app.showLogin();
+                throw new Error('認證失敗，請重新登入');
             }
-            
+
             return result;
         } catch (error) {
             console.error('API Error:', error);
@@ -50,8 +50,7 @@ const api = {
     async getEvent() { return await this.get('getEvent'); },
     async updateEvent(data) { return await this.post('updateEvent', data); },
     async getRedPacketRecords(limit = 50) {
-        const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
-        const url = `${CONFIG.API_URL}?action=getRedPacketRecords&limit=${limit}&password=${password}`;
+        const url = `${CONFIG.API_URL}?action=getRedPacketRecords&limit=${limit}&password=${encodeURIComponent(_sessionPassword || '')}`;
         const response = await fetch(url, { method: 'GET' });
         return await response.json();
     },
@@ -68,30 +67,15 @@ const app = {
     
     // 初始化
     init() {
-        console.log('App init called');
-        
-        // 檢查登入狀態
-        const password = sessionStorage.getItem(CONFIG.PASSWORD_KEY);
-        if (password) {
-            this.showApp();
-            this.navigateTo('dashboard');
-        } else {
-            this.showLogin();
-        }
-        
+        // 每次開啟都要重新登入
+        this.showLogin();
+
         // 登入表單事件
-        const loginForm = document.getElementById('loginForm');
-        if (loginForm) {
-            console.log('Login form found, adding event listener');
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                console.log('Form submitted, calling login');
-                this.login();
-            });
-        } else {
-            console.error('Login form not found!');
-        }
-        
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.login();
+        });
+
         // 會員搜尋事件
         const memberSearch = document.getElementById('memberSearch');
         if (memberSearch) {
@@ -103,32 +87,37 @@ const app = {
     
     // 登入
     async login() {
-        const password = document.getElementById('passwordInput').value;
-        const errorEl = document.getElementById('loginError');
+        const password = document.getElementById('passwordInput').value.trim();
+        const errorEl  = document.getElementById('loginError');
 
-        // 防重複（用 flag，不 disable submit 按鈕以免阻擋 form submit 事件）
+        if (!password) {
+            errorEl.textContent = '請輸入密碼';
+            return;
+        }
+
         if (this._loggingIn) return;
         this._loggingIn = true;
         app.showLoading('登入中...');
         errorEl.textContent = '';
 
-        // 暫存密碼
-        sessionStorage.setItem(CONFIG.PASSWORD_KEY, password);
-
         try {
-            const result = await api.getDashboard();
+            // 直接用 GAS 公開端點驗證密碼，不需要帶 password 參數
+            const url = `${CONFIG.API_URL}?action=verifyPassword&password=${encodeURIComponent(password)}`;
+            const res  = await fetch(url, { method: 'GET' });
+            const result = await res.json();
+
             if (result.success) {
-                errorEl.textContent = '';
+                _sessionPassword = password;   // 驗證通過才存入 session
                 this.showApp();
                 this.navigateTo('dashboard');
                 this.showToast('登入成功', 'success');
             } else {
-                throw new Error('登入失敗');
+                errorEl.textContent = '密碼錯誤';
+                this.showToast('密碼錯誤', 'error');
             }
         } catch (error) {
-            sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
-            errorEl.textContent = '密碼錯誤或無法連接伺服器';
-            this.showToast('登入失敗', 'error');
+            errorEl.textContent = '無法連接伺服器，請稍後再試';
+            this.showToast('連線失敗', 'error');
         } finally {
             this._loggingIn = false;
             app.hideLoading();
@@ -138,7 +127,7 @@ const app = {
     // 登出
     logout() {
         if (confirm('確定要登出嗎?')) {
-            sessionStorage.removeItem(CONFIG.PASSWORD_KEY);
+            _sessionPassword = null;
             this.showLogin();
             this.showToast('已登出', 'info');
         }
@@ -146,12 +135,13 @@ const app = {
     
     // 顯示登入頁
     showLogin() {
-        const loginPage = document.getElementById('loginPage');
+        const loginPage    = document.getElementById('loginPage');
         const appContainer = document.getElementById('appContainer');
-        loginPage.style.removeProperty('display');   // 清除 inline style
+        loginPage.style.removeProperty('display');
         loginPage.classList.add('active');
         appContainer.style.display = 'none';
         document.getElementById('passwordInput').value = '';
+        document.getElementById('loginError').textContent = '';
     },
     
     // 顯示應用程式
