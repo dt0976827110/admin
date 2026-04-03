@@ -105,12 +105,11 @@ const app = {
     async login() {
         const password = document.getElementById('passwordInput').value;
         const errorEl = document.getElementById('loginError');
-        const loginBtn = document.getElementById('loginBtn');
 
-        // 防重複點擊
-        if (loginBtn.disabled) return;
-        loginBtn.disabled = true;
-        loginBtn.textContent = '登入中...';
+        // 防重複（用 flag，不 disable submit 按鈕以免阻擋 form submit 事件）
+        if (this._loggingIn) return;
+        this._loggingIn = true;
+        app.showLoading('登入中...');
         errorEl.textContent = '';
 
         // 暫存密碼
@@ -119,6 +118,7 @@ const app = {
         try {
             const result = await api.getDashboard();
             if (result.success) {
+                errorEl.textContent = '';
                 this.showApp();
                 this.navigateTo('dashboard');
                 this.showToast('登入成功', 'success');
@@ -130,8 +130,8 @@ const app = {
             errorEl.textContent = '密碼錯誤或無法連接伺服器';
             this.showToast('登入失敗', 'error');
         } finally {
-            loginBtn.disabled = false;
-            loginBtn.textContent = '登入';
+            this._loggingIn = false;
+            app.hideLoading();
         }
     },
     
