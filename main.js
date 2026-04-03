@@ -59,6 +59,7 @@ const api = {
     async deleteAutoReply(keyword) { return await this.post('deleteAutoReply', { keyword }); },
     async processDeduction(deductionList) { return await this.post('processDeduction', deductionList); },
     async getDeductionList() { return await this.get('getDeductionList'); },
+    async runDeduction() { return await this.get('runDeduction'); },
     async submitDeduction(rows) { return await this.post('submitDeduction', rows); },
     async getDeductionStatus(accounts) { return await this.post('getDeductionStatus', accounts); },
     async getPendingMembers() { return await this.get('getPendingMembers'); },
@@ -878,29 +879,11 @@ const deduction = {
         });
 
         try {
-            // 步驟1：呼叫原本的 processDeduction（扣餘額、寫N欄O欄、LINE推播）
-            const deductionList = toDeduct.map(r => ({
-                account: r.account,
-                fee:     r.canDeduct
-            }));
-            const deductResult = await api.processDeduction(deductionList);
+            // 呼叫 runDeduction → 執行 扣抵()
+            // 扣抵() 會：扣餘額、寫N欄O欄、LINE推播、寫入會員充值sheet
+            const deductResult = await api.runDeduction();
             if (!deductResult.success) {
                 app.showToast('扣抵失敗：' + (deductResult.error || '未知錯誤'), 'error');
-                this.executing = false;
-                document.getElementById('btnExecuteDeduction').disabled = false;
-                document.getElementById('btnExecuteDeduction').textContent = '執行扣抵';
-                return;
-            }
-
-            // 步驟2：寫入會員充值 sheet，讓擴充功能去後台充值
-            const rows = toDeduct.map(r => ({
-                account:      r.account,
-                canDeduct:    r.canDeduct,
-                deductionRow: r.row
-            }));
-            const creditResult = await api.submitDeduction(rows);
-            if (!creditResult.success) {
-                app.showToast('充值指令送出失敗：' + creditResult.error, 'error');
                 this.executing = false;
                 document.getElementById('btnExecuteDeduction').disabled = false;
                 document.getElementById('btnExecuteDeduction').textContent = '執行扣抵';
