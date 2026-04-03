@@ -602,7 +602,6 @@ const members = {
         document.getElementById('bindLineName').textContent = this.currentPending.lineName;
         document.getElementById('bindLineUid').textContent = this.currentPending.lineUid;
         document.getElementById('bindMemberId').value = '';
-        document.getElementById('bindMemberName').value = '';
         document.getElementById('bindBalance').value = '0';
         document.getElementById('bindStatus').value = '啟用';
 
@@ -619,18 +618,17 @@ const members = {
     },
 
     async bindMember() {
-        const memberId   = document.getElementById('bindMemberId').value.trim();
-        const memberName = document.getElementById('bindMemberName').value.trim();
-        const balance    = parseInt(document.getElementById('bindBalance').value) || 0;
-        const status     = document.getElementById('bindStatus').value;
+        const memberId = document.getElementById('bindMemberId').value.trim();
+        const balance  = parseInt(document.getElementById('bindBalance').value) || 0;
+        const status   = document.getElementById('bindStatus').value;
 
-        if (!memberId || !memberName) {
-            app.showToast('請填寫會員 ID 和姓名', 'warning');
+        if (!memberId) {
+            app.showToast('請填寫會員 ID', 'warning');
             return;
         }
 
         const ok = await app.confirm(
-            `確定要綁定？\n\nLINE：${this.currentPending.lineName}\n會員 ID：${memberId}\n姓名：${memberName}\n折扣金：${balance}`
+            `確定要綁定？\n\nLINE：${this.currentPending.lineName}\n會員 ID：${memberId}\n折扣金：${balance}`
         );
         if (!ok) return;
 
@@ -640,7 +638,7 @@ const members = {
                 lineUid:    this.currentPending.lineUid,
                 lineName:   this.currentPending.lineName,
                 memberId:   memberId,
-                memberName: memberName,
+                memberName: this.currentPending.lineName,
                 balance:    balance,
                 status:     status
             });
