@@ -45,11 +45,12 @@ body {
     color: var(--text-primary);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    /* 不需要 padding-top，由 page-header fixed 自己處理 */
 }
 
 /* ===== 頁面結構 ===== */
 .page { display: none; min-height: 100vh; padding-bottom: 80px; }
-.page.active { display: block; }
+.page.active { display: block; padding-top: calc(max(env(safe-area-inset-top), 16px) + 52px); }
 .app-container { position: relative; }
 
 /* ===== 登入頁面 ===== */
@@ -58,7 +59,7 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding-top: env(safe-area-inset-top);
+    padding-top: max(env(safe-area-inset-top), 16px);
     background: linear-gradient(135deg, #0a0a0f 0%, #15151f 100%);
 }
 #loginPage.active { display: flex; }
@@ -138,12 +139,19 @@ button { font-family: inherit; cursor: pointer; transition: all 0.15s; border: n
 
 /* ===== 頁面標題 ===== */
 .page-header {
-    display: flex; justify-content: space-between; align-items: center;
-    /* padding-top 包含狀態列高度，背景從螢幕最頂覆蓋 */
-    padding: calc(env(safe-area-inset-top) + 15px) 20px 15px;
-    background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle);
-    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px);
-    min-height: calc(env(safe-area-inset-top) + 58px);
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding-top: max(env(safe-area-inset-top), 16px);
+    padding-bottom: 14px;
+    padding-left: 20px;
+    padding-right: 20px;
+    height: calc(max(env(safe-area-inset-top), 16px) + 52px);
+    box-sizing: border-box;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    backdrop-filter: blur(12px);
 }
 .page-header h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
 
