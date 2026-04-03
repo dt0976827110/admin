@@ -314,13 +314,18 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
 .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
 .form-group input,
 .form-group select,
-.form-group textarea {
+.form-group textarea,
+.form-group input[type="datetime-local"] {
     width: 100%; padding: 11px 14px; background: var(--bg-tertiary);
     border: 1px solid var(--border-default); border-radius: var(--radius);
     color: var(--text-primary); font-size: 14px; font-family: inherit;
+    box-sizing: border-box;
 }
 .form-group textarea { resize: vertical; min-height: 80px; line-height: 1.6; margin-bottom: 0; }
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.form-group input[type="datetime-local"]:focus {
     outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
 }
 .form-group select {
@@ -328,23 +333,10 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
 }
-/* datetime-local 高度與一般 input 一致 */
-input[type="datetime-local"] {
-    width: 100%;
-    padding: 11px 14px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius);
-    color: var(--text-primary);
-    font-size: 14px;
-    font-family: inherit;
-    box-sizing: border-box;
-}
-
-input[type="datetime-local"]:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+.form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
 /* 會員餘額調整 */
