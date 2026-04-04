@@ -326,7 +326,11 @@
             <h3>編輯會員</h3>
             <button class="btn-close" onclick="members.closeModal()">×</button>
         </div>
-        <div class="modal-content">
+        <div class="modal-tab-bar">
+            <button class="modal-tab active" id="memberTabEdit" onclick="members.switchModalTab('edit')">編輯</button>
+            <button class="modal-tab" id="memberTabLog" onclick="members.switchModalTab('log')">折抵紀錄</button>
+        </div>
+        <div id="memberTabPanelEdit" class="modal-content">
             <div class="member-info-grid">
                 <span class="info-label">會員 ID</span>
                 <span id="modalMemberId" class="info-value"></span>
@@ -364,9 +368,15 @@
                 <input type="text" id="modalNote" placeholder="輸入備註...">
             </div>
         </div>
+        </div><!-- /memberTabPanelEdit -->
+        <div id="memberTabPanelLog" class="modal-content" style="display:none;">
+            <div id="memberLogList" class="deduction-log-list">
+                <div class="loading">載入中...</div>
+            </div>
+        </div>
         <div class="modal-footer">
             <button class="btn-secondary" onclick="members.closeModal()">取消</button>
-            <button class="btn-primary" onclick="members.saveMember()">儲存</button>
+            <button class="btn-primary" id="memberSaveBtn" onclick="members.saveMember()">儲存</button>
         </div>
     </div>
 

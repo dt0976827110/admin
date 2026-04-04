@@ -59,9 +59,10 @@ const api = {
     async deleteAutoReply(keyword) { return await this.post('deleteAutoReply', { keyword }); },
     async processDeduction(deductionList) { return await this.post('processDeduction', deductionList); },
     async getDeductionList() { return await this.get('getDeductionList'); },
+    async getDeductionLog(account) { return await this.post('getDeductionLog', { account, limit: 50 }); },
     async runDeduction() { return await this.get('runDeduction'); },
     async submitDeduction(rows) { return await this.post('submitDeduction', rows); },
-    async getDeductionStatus(accounts) { return await this.post('getDeductionStatus', accounts); },
+    async getDeductionStatus(rows) { return await this.post('getDeductionStatus', rows); },
     async getPendingMembers() { return await this.get('getPendingMembers'); },
     async bindMember(data) { return await this.post('bindMember', data); }
 };
@@ -433,6 +434,7 @@ const members = {
     currentTab: 'members',
     pendingList: [],
     currentPending: null,
+    currentModalTab: 'edit',
     
     // 載入會員列表
     async load() {
@@ -523,9 +525,61 @@ const members = {
             }
         };
         
+        // 每次開啟都重設為編輯 tab
+        this.switchModalTab('edit');
         app.showModal('memberModal');
     },
-    
+
+    // 切換 Modal Tab
+    switchModalTab(tab) {
+        this.currentModalTab = tab;
+        document.getElementById('memberTabEdit').classList.toggle('active', tab === 'edit');
+        document.getElementById('memberTabLog').classList.toggle('active', tab === 'log');
+        document.getElementById('memberTabPanelEdit').style.display = tab === 'edit' ? '' : 'none';
+        document.getElementById('memberTabPanelLog').style.display  = tab === 'log'  ? '' : 'none';
+        document.getElementById('memberSaveBtn').style.display = tab === 'edit' ? '' : 'none';
+
+        if (tab === 'log' && this.currentMember) {
+            this.loadDeductionLog(this.currentMember.id);
+        }
+    },
+
+    // 載入折抵紀錄
+    async loadDeductionLog(account) {
+        const container = document.getElementById('memberLogList');
+        container.innerHTML = '<div class="loading">載入中...</div>';
+        try {
+            const result = await api.getDeductionLog(account);
+            if (!result.success) {
+                container.innerHTML = '<div class="loading">載入失敗</div>';
+                return;
+            }
+            if (result.data.length === 0) {
+                container.innerHTML = '<div class="loading">尚無折抵紀錄</div>';
+                return;
+            }
+            container.innerHTML = result.data.map(r => `
+                <div class="log-item">
+                    <div class="log-date">${app.formatDateTime(r.date)}</div>
+                    <div class="log-field">
+                        <span class="log-label">手續費</span>
+                        <span class="log-value">$${r.fee.toLocaleString()}</span>
+                    </div>
+                    <div class="log-field">
+                        <span class="log-label">折扣金額</span>
+                        <span class="log-value deducted">-$${r.deducted.toLocaleString()}</span>
+                    </div>
+                    <div class="log-field">
+                        <span class="log-label">扣後餘額</span>
+                        <span class="log-value balance">$${r.newBalance.toLocaleString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            container.innerHTML = '<div class="loading">載入失敗</div>';
+        }
+    },
+
     // 關閉 Modal
     closeModal() {
         app.hideModal('memberModal');
@@ -801,7 +855,7 @@ const deduction = {
         }
 
         return `
-        <div class="deduction-card" id="card-${row.account}">
+        <div class="deduction-card" id="card-${row.row}">
             <div class="deduction-card-header">
                 <span class="deduction-account">${row.account}</span>
                 <span class="deduction-type">${row.type || '會員'}</span>
@@ -833,8 +887,8 @@ const deduction = {
         return map[status] || 'status-pending';
     },
 
-    updateCardStatus(account, status, result) {
-        const card = document.getElementById('card-' + account);
+    updateCardStatus(rowKey, status, result) {
+        const card = document.getElementById('card-' + rowKey);
         if (!card) return;
 
         const labels = { waiting: '⏳ 待執行', running: '⚙️ 執行中', done: '✅ 充值成功，LINE 推播已發送', skip: '➖ 不需扣抵', error: '❌ ' + (result || '失敗') };
@@ -870,12 +924,12 @@ const deduction = {
         // 先顯示所有待執行狀態
         toDeduct.forEach(r => {
             r._status = 'waiting';
-            this.updateCardStatus(r.account, 'waiting');
+            this.updateCardStatus(r.row, 'waiting');
         });
 
         // 不需扣抵的顯示 skip
         this.list.filter(r => r.canDeduct <= 0).forEach(r => {
-            this.updateCardStatus(r.account, 'skip');
+            this.updateCardStatus(r.row, 'skip');
         });
 
         try {
@@ -890,9 +944,16 @@ const deduction = {
                 return;
             }
 
-            // 開始輪詢充值狀態
-            const accounts = toDeduct.map(r => r.account);
-            this.startPolling(accounts, toDeduct);
+            // 開始輪詢充值狀態（需要 creditRow，從 submitDeduction 回傳）
+            // creditRow = 會員充值 sheet 的列號，從最後一列往前算
+            // 因為 appendRow 是依序加，第一筆是 lastRow-count+1
+            const count = toDeduct.filter(r => r.canDeduct > 0).length;
+            const statusRows = toDeduct.map((r, idx) => ({
+                deductionRow: r.row,
+                account:      r.account,
+                creditRow:    creditResult.lastRow - count + 1 + idx
+            }));
+            this.startPolling(statusRows);
 
         } catch (err) {
             app.showToast('送出失敗', 'error');
@@ -902,25 +963,25 @@ const deduction = {
         }
     },
 
-    startPolling(accounts, rows) {
+    startPolling(statusRows) {
         this.polling = setInterval(async () => {
             try {
-                const result = await api.getDeductionStatus(accounts);
+                const result = await api.getDeductionStatus(statusRows);
                 if (!result.success) return;
 
-                const statusMap = result.data;
+                const statusMap = result.data; // key = deductionRow
                 let allDone = true;
 
-                accounts.forEach(acct => {
-                    const s = statusMap[acct];
+                statusRows.forEach(row => {
+                    const s = statusMap[row.deductionRow];
                     if (!s) { allDone = false; return; }
 
                     if (s.status === '完成') {
-                        this.updateCardStatus(acct, 'done', s.result);
+                        this.updateCardStatus(row.deductionRow, 'done', s.result);
                     } else if (s.status === '失敗') {
-                        this.updateCardStatus(acct, 'error', s.result);
+                        this.updateCardStatus(row.deductionRow, 'error', s.result);
                     } else if (s.status === '執行中') {
-                        this.updateCardStatus(acct, 'running');
+                        this.updateCardStatus(row.deductionRow, 'running');
                         allDone = false;
                     } else {
                         allDone = false;
