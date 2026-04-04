@@ -944,16 +944,17 @@ const deduction = {
                 return;
             }
 
-            // 開始輪詢充值狀態（需要 creditRow，從 submitDeduction 回傳）
-            // creditRow = 會員充值 sheet 的列號，從最後一列往前算
-            // 因為 appendRow 是依序加，第一筆是 lastRow-count+1
-            const count = toDeduct.filter(r => r.canDeduct > 0).length;
-            const statusRows = toDeduct.map((r, idx) => ({
-                deductionRow: r.row,
-                account:      r.account,
-                creditRow:    creditResult.lastRow - count + 1 + idx
-            }));
-            this.startPolling(statusRows);
+            // 開始輪詢充值狀態
+            // GAS 回傳每筆的 creditRow（會員充值 sheet 列號）和 deductionRow（今日折抵表列號）
+            const statusRows = deductResult.creditRows || [];
+            if (statusRows.length > 0) {
+                this.startPolling(statusRows);
+            } else {
+                // 沒有需要充值的（全部餘額為0）
+                this.executing = false;
+                app.showToast('扣抵完成', 'success');
+                document.getElementById('btnExecuteDeduction').style.display = 'none';
+            }
 
         } catch (err) {
             app.showToast('送出失敗', 'error');
